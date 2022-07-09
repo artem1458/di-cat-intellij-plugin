@@ -2,6 +2,7 @@ package com.github.artem1458.dicatplugin.taskqueue
 
 import com.intellij.openapi.diagnostic.Logger
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class AbstractTaskExecutorQueue<T : ITaskExecutorQueue.ITask>(
   private val executionInterval: Duration
@@ -10,7 +11,10 @@ abstract class AbstractTaskExecutorQueue<T : ITaskExecutorQueue.ITask>(
   abstract fun executeAll(tasks: Iterable<T>)
 
   protected val logger = Logger.getInstance(javaClass)
+
   private val queue = mutableListOf<T>()
+
+  @Volatile
   private var executionThread: CancelableThread? = null
 
   @Synchronized
@@ -57,10 +61,14 @@ abstract class AbstractTaskExecutorQueue<T : ITaskExecutorQueue.ITask>(
       name = "DICat task queue thread"
     }
 
-    private var cancelled = false
+    private val cancelled = AtomicBoolean(false)
 
     override fun run() {
-      while (!cancelled) {
+      while (!cancelled.get()) {
+        if (cancelled.get()) {
+          break
+        }
+
         try {
           try {
             val tasks = getAllTasksAndClearQueue()
@@ -70,19 +78,19 @@ abstract class AbstractTaskExecutorQueue<T : ITaskExecutorQueue.ITask>(
             logger.error("Consume task error.", error)
           }
         } catch (error: Exception) {
-          if (cancelled) {
+          if (cancelled.get()) {
             break
           }
 
           logger.error(error)
-          sleep(executionInterval.toMillis())
         }
+
+        sleep(executionInterval.toMillis())
       }
     }
 
-    @Synchronized
     fun cancel() {
-      cancelled = true
+      cancelled.set(true)
     }
   }
 
