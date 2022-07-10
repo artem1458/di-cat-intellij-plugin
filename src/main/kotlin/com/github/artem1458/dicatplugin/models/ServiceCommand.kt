@@ -8,7 +8,7 @@ data class ServiceCommand<Payload>(
   val type: CommandType,
 
   val payload: Payload,
-) : ITaskExecutorQueue.ITask {
+) {
 
   companion object {
     fun FS(payload: FileSystemCommandPayload): FSServiceCommand = ServiceCommand(

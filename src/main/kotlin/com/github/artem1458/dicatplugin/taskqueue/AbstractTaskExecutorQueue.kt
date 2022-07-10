@@ -4,7 +4,7 @@ import com.intellij.openapi.diagnostic.Logger
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
-abstract class AbstractTaskExecutorQueue<T : ITaskExecutorQueue.ITask>(
+abstract class AbstractTaskExecutorQueue<T>(
   private val executionInterval: Duration
 ) : ITaskExecutorQueue<T> {
 

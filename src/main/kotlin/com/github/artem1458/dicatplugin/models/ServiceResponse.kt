@@ -14,6 +14,4 @@ data class ServiceResponse(
     EXIT,
     ERROR,
   }
-
-  //TODO describe response typealiases
 }
