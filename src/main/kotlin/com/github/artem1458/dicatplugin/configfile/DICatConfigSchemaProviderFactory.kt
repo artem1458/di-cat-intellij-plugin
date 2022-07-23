@@ -1,6 +1,6 @@
 package com.github.artem1458.dicatplugin.configfile
 
-import com.github.artem1458.dicatplugin.PathUtils
+import com.github.artem1458.dicatplugin.utils.PathUtils
 import com.intellij.lang.javascript.EmbeddedJsonSchemaFileProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile

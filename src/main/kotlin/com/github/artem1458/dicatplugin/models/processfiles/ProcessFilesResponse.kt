@@ -1,17 +1,19 @@
 package com.github.artem1458.dicatplugin.models.processfiles
 
 data class ProcessFilesResponse(
-  val compilationMessages: List<CompilationMessage>
+  val compilationMessages: List<CompilationMessage>,
+  val modificationStamps: Map<String, Long>
 ) {
 
   data class CompilationMessage(
     val details: String?,
-    val code: MessageCode,
+    val code: String,
     val type: MessageType,
     val description: String,
     val position: NodePosition,
     val contextDetails: ContextDetails?,
     val filePath: String,
+    val originalText: String
   )
 
   data class ContextDetails(
@@ -24,31 +26,13 @@ data class ProcessFilesResponse(
     val line: Int,
     val startColumn: Int,
     val endColumn: Int,
+    val startOffset: Int,
+    val endOffset: Int
   )
 
   enum class MessageType {
     INFO,
     WARNING,
     ERROR
-  }
-
-  enum class MessageCode {
-    DICAT0,
-    DICAT1,
-    DICAT2,
-    DICAT3,
-    DICAT4,
-    DICAT5,
-    DICAT6,
-    DICAT7,
-    DICAT8,
-    DICAT9,
-    DICAT10,
-    DICAT11,
-    DICAT12,
-    DICAT13,
-    DICAT14,
-    DICAT15,
-    DICAT16,
   }
 }

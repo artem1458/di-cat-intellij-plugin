@@ -19,7 +19,7 @@ class DICatProcessListener(
 
   private val objectMapper = Gson()
 
-  private val logger: Logger = Logger.getInstance(javaClass)
+  private val LOGGER = Logger.getInstance(javaClass)
   private val bufferedWriter: BufferedWriter = processHandler.processInput.bufferedWriter()
   private var future: CompletableFuture<ServiceResponse>? = null
   private val initialized = AtomicBoolean(false)
@@ -49,7 +49,7 @@ class DICatProcessListener(
 
         future?.complete(response)
       } catch (err: Throwable) {
-        logger.error(err)
+        LOGGER.error(err)
         //TODO
         future?.complete(ServiceResponse(ServiceResponse.ResponseType.ERROR, null))
       }

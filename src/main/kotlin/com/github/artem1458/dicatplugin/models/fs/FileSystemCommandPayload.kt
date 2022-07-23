@@ -1,24 +1,33 @@
 package com.github.artem1458.dicatplugin.models.fs
 
-typealias Path = String
-typealias Content = String
-
 interface FileSystemCommandPayload {
   val type: FSCommandType
 
   enum class FSCommandType {
     ADD,
     DELETE,
+    MOVE,
   }
 
   data class Delete(
-    val paths: MutableList<Path> = mutableListOf()
+    val path: String
   ) : FileSystemCommandPayload {
     override val type = FSCommandType.DELETE
   }
 
+  data class Move(
+    val oldPath: String,
+    val newPath: String,
+    val content: String,
+    val modificationStamp: Long?
+  ) : FileSystemCommandPayload {
+    override val type = FSCommandType.MOVE
+  }
+
   data class Add(
-    val files: MutableMap<Path, Content> = mutableMapOf()
+    val path: String,
+    val content: String,
+    val modificationStamp: Long?,
   ) : FileSystemCommandPayload {
     override val type = FSCommandType.ADD
   }

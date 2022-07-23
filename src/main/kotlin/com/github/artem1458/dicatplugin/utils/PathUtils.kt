@@ -1,4 +1,4 @@
-package com.github.artem1458.dicatplugin
+package com.github.artem1458.dicatplugin.utils
 
 import com.intellij.openapi.project.Project
 import java.nio.file.Path

@@ -17,11 +17,18 @@
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatService"/>
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.CommandExecutorService" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener" />
+        <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.annotators.DICatExternalAnnotator"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript">
         <JsonSchema.ProviderFactory implementation="com.github.artem1458.dicatplugin.configfile.DICatConfigSchemaProviderFactory"/>
     </extensions>
+
+    <project-components>
+        <component>
+            <implementation-class>com.github.artem1458.dicatplugin.components.StatsRepository</implementation-class>
+        </component>
+    </project-components>
 
     <applicationListeners>
         <listener class="com.github.artem1458.dicatplugin.listeners.ProjectOpenedListener"

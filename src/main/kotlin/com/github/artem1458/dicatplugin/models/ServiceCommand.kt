@@ -3,6 +3,7 @@ package com.github.artem1458.dicatplugin.models
 import com.github.artem1458.dicatplugin.models.fs.BatchFileSystemCommandPayload
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.taskqueue.ITaskExecutorQueue
+import org.jetbrains.annotations.ApiStatus.Internal
 
 data class ServiceCommand<Payload>(
   val type: CommandType,

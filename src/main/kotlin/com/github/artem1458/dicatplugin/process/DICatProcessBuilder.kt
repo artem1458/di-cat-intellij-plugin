@@ -1,17 +1,14 @@
 package com.github.artem1458.dicatplugin.process
 
-import com.github.artem1458.dicatplugin.PathUtils
 import com.github.artem1458.dicatplugin.exceptions.DICatServiceNotFoundException
 import com.github.artem1458.dicatplugin.exceptions.NodeJSNotFoundException
 import com.github.artem1458.dicatplugin.exceptions.NotFoundException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
-import com.intellij.execution.process.ProcessHandlerFactory
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.BaseDataReader.SleepingPolicy
 import com.intellij.util.io.BaseOutputReader
-import java.util.concurrent.Future
+import com.github.artem1458.dicatplugin.utils.PathUtils
 
 object DICatProcessBuilder {
 
@@ -38,13 +35,6 @@ object DICatProcessBuilder {
     commandLine: GeneralCommandLine,
   ) : OSProcessHandler(commandLine) {
 
-    override fun readerOptions() = MyReaderOptions()
-
-    private class MyReaderOptions : BaseOutputReader.Options() {
-      override fun splitToLines(): Boolean = false
-      override fun sendIncompleteLines(): Boolean = false
-
-//      override fun policy(): SleepingPolicy = SleepingPolicy.NON_BLOCKING
-    }
+    override fun readerOptions(): BaseOutputReader.Options = BaseOutputReader.Options.forMostlySilentProcess()
   }
 }
