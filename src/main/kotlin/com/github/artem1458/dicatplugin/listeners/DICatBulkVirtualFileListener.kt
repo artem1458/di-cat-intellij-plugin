@@ -3,10 +3,9 @@ package com.github.artem1458.dicatplugin.listeners
 import com.github.artem1458.dicatplugin.PsiUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
-import com.github.artem1458.dicatplugin.services.CommandExecutorService
+import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
@@ -15,15 +14,13 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.PsiUtilBase
 
 class DICatBulkVirtualFileListener(
   private val project: Project
 ) : BulkFileListener {
 
   override fun after(events: MutableList<out VFileEvent>) {
-    val commandExecutorService = project.service<CommandExecutorService>()
+    val commandExecutorService = project.service<DICatCommandExecutorService>()
 
     val fsCommandPayloads = mutableListOf<FileSystemCommandPayload>()
 

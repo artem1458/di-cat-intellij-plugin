@@ -4,20 +4,19 @@ import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
-import com.github.artem1458.dicatplugin.components.StatsRepository
-import com.github.artem1458.dicatplugin.utils.DebouncedExecutor
+import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.google.gson.Gson
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
-import java.time.Duration
 
 class DICatService(
   private val project: Project
@@ -28,34 +27,26 @@ class DICatService(
   private var processHandler: OSProcessHandler? = null
   private var processListener: DICatProcessListener? = null
 
-  fun run() {
-    val commandExecutorService = project.service<CommandExecutorService>()
+  fun start() {
+    LOGGER.info("Starting DICat service")
+    val commandExecutorService = project.service<DICatCommandExecutorService>()
     val diCatProcess = DICatProcessBuilder.build(project)
 
     val diCatProcessListener = DICatProcessListener(diCatProcess)
     diCatProcess.addProcessListener(diCatProcessListener)
 
+    LOGGER.info("Starting DICat process (startNotify)")
     diCatProcess.startNotify()
-    commandExecutorService.start()
 
     processHandler = diCatProcess
     processListener = diCatProcessListener
 
-    //Remove
+    LOGGER.info("Adding Process files command")
     commandExecutorService.add(ServiceCommand.ProcessFiles())
   }
 
-  fun restart() {
-    val commandExecutorService = project.service<CommandExecutorService>()
-
-    terminateProcess()
-    commandExecutorService.stop()
-
-    run()
-  }
-
-  @Synchronized
   fun sendCommand(command: ServiceCommand<*>): ServiceResponse {
+    LOGGER.info("sendCommand(): Sending command with type: ${command.type}")
     val processListener = processListener ?: throw IllegalStateException("Process listener is not initialized")
 
     val response = processListener.writeAndFlush(command).get()
@@ -64,45 +55,41 @@ class DICatService(
   }
 
   private fun handleResponse(response: ServiceResponse) {
-    response.payload ?: return
+    if (project.isDisposed) return Unit.also { LOGGER.info("Project disposed, ignorring response") }
 
-    if (project.isDisposed) return
-
-    val repository = project.getComponent(StatsRepository::class.java)
+    LOGGER.info("Handling response with type: ${response.type}")
+    response.payload ?: return Unit.also { LOGGER.info("Response has no payload, skipping") }
 
     if (response.type == ServiceResponse.ResponseType.PROCESS_FILES) {
+      val repository = project.getComponent(DICatStatsRepository::class.java)
+
       val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
 
+      LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
+
+//      restartDaemonCodeAnalyzer()
       repository.updateData(processFilesResponse)
-      restartDaemonCodeAnalyzer()
     }
   }
 
   private fun restartDaemonCodeAnalyzer() {
-    LOGGER.info("Running invokeLater")
-    ApplicationManager.getApplication().invokeLater {
+    LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
+    ReadAction.run<Nothing> {
       val psiManager = PsiManager.getInstance(project)
       val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
 
       FileEditorManager.getInstance(project).allEditors.forEach { editor ->
-        LOGGER.info("Restarting Daemon Code Analyzer")
-        editor.file?.let(psiManager::findFile)?.let(daemonCodeAnalyzer::restart)
+        val file = editor.file ?:
+        return@forEach Unit.also { LOGGER.info("VFile from editor not found, skipping restart") }
+
+        val psiFile = psiManager.findFile(file) ?:
+        return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart") }
+
+        LOGGER.info("Restarting Daemon Code Analyzer for file: ${file.path}")
+        daemonCodeAnalyzer.restart(psiFile)
       }
     }
   }
-//
-//  val restartDaemonCodeAnalyzer = DebouncedExecutor(Duration.ofSeconds(2)) {
-//    LOGGER.info("Running invokeLater")
-//    ApplicationManager.getApplication().invokeLater {
-//      val psiManager = PsiManager.getInstance(project)
-//      val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
-//
-//      FileEditorManager.getInstance(project).allEditors.forEach { editor ->
-//        LOGGER.info("Restarting Daemon Code Analyzer")
-//        editor.file?.let(psiManager::findFile)?.let(daemonCodeAnalyzer::restart)
-//      }
-//    }
-//  }
 
   override fun dispose() {
     terminateProcess()

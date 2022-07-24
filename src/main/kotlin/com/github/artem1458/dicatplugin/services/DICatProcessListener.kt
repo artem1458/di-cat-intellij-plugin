@@ -6,7 +6,6 @@ import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputType
-import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import java.io.BufferedWriter
@@ -21,19 +20,18 @@ class DICatProcessListener(
 
   private val LOGGER = Logger.getInstance(javaClass)
   private val bufferedWriter: BufferedWriter = processHandler.processInput.bufferedWriter()
-  private var future: CompletableFuture<ServiceResponse>? = null
   private val initialized = AtomicBoolean(false)
+
+  @Volatile
+  private var responseFuture: CompletableFuture<ServiceResponse>? = null
 
   override fun startNotified(event: ProcessEvent) = Unit
 
-  @Synchronized
   override fun processTerminated(event: ProcessEvent) {
     bufferedWriter.close()
-    initialized.set(false)
-    future?.complete(ServiceResponse(ServiceResponse.ResponseType.EXIT, null))
+    responseFuture?.let { synchronized(it) { it.cancel(true) } }
   }
 
-  @Synchronized
   override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
     if (ProcessOutputType.isStdout(outputType)) {
       val text = event.text.trim()
@@ -47,25 +45,37 @@ class DICatProcessListener(
           return
         }
 
-        future?.complete(response)
+        responseFuture?.let{
+          synchronized(it) {it.complete(response)}
+        }
       } catch (err: Throwable) {
         LOGGER.error(err)
         //TODO
-        future?.complete(ServiceResponse(ServiceResponse.ResponseType.ERROR, null))
+        responseFuture?.let{
+          synchronized(it) {it.complete(ServiceResponse(ServiceResponse.ResponseType.ERROR, null))}
+        }
       }
     }
   }
 
-  @Synchronized
   fun <T> writeAndFlush(data: T): CompletableFuture<ServiceResponse> {
     while (!initialized.get()) {
       Thread.sleep(100)
+    }
+
+    responseFuture?.let {
+      synchronized(it) {
+        if (!it.isDone) throw IllegalStateException("Can not flush data, previous response is not received")
+      }
     }
 
     bufferedWriter.write(objectMapper.toJson(data))
     bufferedWriter.newLine()
     bufferedWriter.flush()
 
-    return CompletableFuture<ServiceResponse>().also { future = it }
+    val newResponseFuture = CompletableFuture<ServiceResponse>()
+    responseFuture = newResponseFuture
+
+    return newResponseFuture
   }
 }

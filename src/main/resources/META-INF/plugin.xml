@@ -15,8 +15,8 @@
                 fieldName="INSTANCE"
         />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatService"/>
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.CommandExecutorService" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatCommandExecutorService" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener" />
         <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.annotators.DICatExternalAnnotator"/>
     </extensions>
 
@@ -26,7 +26,7 @@
 
     <project-components>
         <component>
-            <implementation-class>com.github.artem1458.dicatplugin.components.StatsRepository</implementation-class>
+            <implementation-class>com.github.artem1458.dicatplugin.components.DICatStatsRepository</implementation-class>
         </component>
     </project-components>
 

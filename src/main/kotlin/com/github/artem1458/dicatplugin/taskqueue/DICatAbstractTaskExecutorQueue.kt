@@ -3,12 +3,9 @@ package com.github.artem1458.dicatplugin.taskqueue
 import com.intellij.openapi.diagnostic.Logger
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.thread
 
-abstract class AbstractTaskExecutorQueue<T>(
+abstract class DICatAbstractTaskExecutorQueue<T>(
   private val executionInterval: Duration
 ) : ITaskExecutorQueue<T> {
 
@@ -26,18 +23,27 @@ abstract class AbstractTaskExecutorQueue<T>(
 
   private val hasQueueChanges = AtomicBoolean(false)
 
-  @Synchronized
   override fun add(task: T) {
-    queue.add(task)
-    nextStartTime = LocalDateTime.now().plus(executionInterval)
-    hasQueueChanges.set(true)
+    synchronized(queue) {
+      queue.add(task)
+      postAdd()
+    }
   }
 
-  @Synchronized
   override fun add(tasks: List<T>) {
-    queue.addAll(tasks)
-    nextStartTime = LocalDateTime.now().plus(executionInterval)
-    hasQueueChanges.set(true)
+    if (tasks.isEmpty()) return
+
+    synchronized(queue) {
+      queue.addAll(tasks)
+      postAdd()
+    }
+  }
+
+  private fun postAdd() {
+    synchronized(nextStartTime) {
+      nextStartTime = LocalDateTime.now().plus(executionInterval)
+      hasQueueChanges.set(true)
+    }
   }
 
   override fun start() {
@@ -46,37 +52,40 @@ abstract class AbstractTaskExecutorQueue<T>(
 
     val newThread = CancelableThread(executionInterval)
 
-    newThread.start()
-
-    executionThread = newThread
+    executionThread = newThread.also { it.start() }
   }
 
-  @Synchronized
   override fun stop() {
-    val thread = executionThread ?: return
+    val thread = executionThread
 
-    thread.cancel()
+    if (thread != null) {
+      thread.cancel()
 
-    while (thread.isAlive) {
-      Thread.sleep(100)
+      while (thread.isAlive) {
+        Thread.sleep(100)
+      }
     }
 
     clear()
   }
 
   override fun clear() {
-    queue.clear()
+    synchronized(queue) {
+      queue.clear()
+    }
   }
 
-  @Synchronized
-  private fun getAllTasksAndClearQueue(): List<T> = queue.toList()
-    .also { queue.clear() }
-    .also { hasQueueChanges.set(false) }
+  private fun getAllTasksAndClearQueue(): List<T> = synchronized(queue) {
+    queue.toList()
+      .also { queue.clear() }
+      .also { hasQueueChanges.set(false) }
+  }
 
   private inner class CancelableThread(private val executionInterval: Duration) : Thread() {
 
     init {
       name = "DICat task queue"
+      isDaemon = true
     }
 
     private val cancelled = AtomicBoolean(false)

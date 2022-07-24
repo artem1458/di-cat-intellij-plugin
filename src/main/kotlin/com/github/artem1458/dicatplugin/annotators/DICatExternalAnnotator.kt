@@ -1,7 +1,7 @@
 package com.github.artem1458.dicatplugin.annotators
 
 import com.github.artem1458.dicatplugin.PsiUtils
-import com.github.artem1458.dicatplugin.components.StatsRepository
+import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
 import com.intellij.lang.annotation.AnnotationHolder
@@ -31,9 +31,9 @@ class DICatExternalAnnotator :
   override fun doAnnotate(collectedInfo: DICatCollectedInfo?): DICatAnnotationResultType? {
     collectedInfo ?: return null
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.getComponent(StatsRepository::class.java)
+    val statsRepository = project.getComponent(DICatStatsRepository::class.java)
 
-    return annotate(collectedInfo, statsRepository.getData())
+    return annotate(collectedInfo, statsRepository.getCurrent())
   }
 
   private fun annotate(
@@ -45,6 +45,8 @@ class DICatExternalAnnotator :
     }.getOrElse {
       if (it !is CancellationException) {
         LOGGER.error(it)
+      } else {
+        LOGGER.info("Future is canceled", it)
       }
 
       return null
@@ -67,9 +69,9 @@ class DICatExternalAnnotator :
 
     LOGGER.info("annotate(): waiting more new timestamp")
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.getComponent(StatsRepository::class.java)
+    val statsRepository = project.getComponent(DICatStatsRepository::class.java)
 
-    return annotate(collectedInfo, statsRepository.getNextData())
+    return annotate(collectedInfo, statsRepository.getNext())
   }
 
   override fun apply(psiFile: PsiFile, annotationResult: DICatAnnotationResultType?, holder: AnnotationHolder) {

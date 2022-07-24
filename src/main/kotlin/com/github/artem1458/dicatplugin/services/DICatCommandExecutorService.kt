@@ -1,0 +1,90 @@
+package com.github.artem1458.dicatplugin.services
+
+import com.github.artem1458.dicatplugin.models.BatchFSServiceCommand
+import com.github.artem1458.dicatplugin.models.FSServiceCommand
+import com.github.artem1458.dicatplugin.models.ServiceCommand
+import com.github.artem1458.dicatplugin.models.fs.BatchFileSystemCommandPayload
+import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
+import com.github.artem1458.dicatplugin.taskqueue.DICatAbstractTaskExecutorQueue
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import java.time.Duration
+
+class DICatCommandExecutorService(
+  private val project: Project
+) : DICatAbstractTaskExecutorQueue<ServiceCommand<*>>(Duration.ofSeconds(2)), Disposable {
+
+  override fun dispose() {
+    stop()
+  }
+
+  override fun executeAll(tasks: Iterable<ServiceCommand<*>>) {
+    val fsCommands = mutableListOf<FSServiceCommand>()
+
+    tasks.forEach { task ->
+      when (task.type) {
+        ServiceCommand.CommandType.FS -> fsCommands.add(task as FSServiceCommand)
+        else -> {}
+      }
+    }
+
+    LOGGER.info("FS Timestamps: ${fsCommands.map { (it.payload as? FileSystemCommandPayload.Add)?.modificationStamp }}")
+
+    val fsServiceCommand = buildBatchFSCommand(fsCommands)
+
+    executeCommand(fsServiceCommand)
+
+    val processFilesCommand = ServiceCommand.ProcessFiles()
+
+    executeCommand(processFilesCommand)
+  }
+
+  private fun executeCommand(command: ServiceCommand<*>) {
+    val diCatService = project.service<DICatService>()
+
+    //TODO If will throw an exception push tasks back to queue
+    diCatService.sendCommand(command)
+  }
+
+  private fun buildBatchFSCommand(fsCommands: List<FSServiceCommand>): BatchFSServiceCommand {
+    return ServiceCommand.BatchFS(BatchFileSystemCommandPayload(fsCommands.map { it.payload }))
+
+    val addedPaths = mutableSetOf<String>()
+    val squashedCommands = mutableListOf<FileSystemCommandPayload>()
+
+    fsCommands.forEach { command ->
+      when (command.payload) {
+        is FileSystemCommandPayload.Delete -> {
+
+          if (addedPaths.contains(command.payload.path)) {
+            removeCommandFromListByPath(squashedCommands, command.payload.path)
+          }
+
+          squashedCommands.add(command.payload)
+        }
+        is FileSystemCommandPayload.Add -> {
+
+          if (addedPaths.contains(command.payload.path)) {
+            removeCommandFromListByPath(squashedCommands, command.payload.path)
+          }
+
+          squashedCommands.add(command.payload)
+        }
+        is FileSystemCommandPayload.Move -> squashedCommands.add(command.payload)
+      }
+    }
+
+    return ServiceCommand.BatchFS(BatchFileSystemCommandPayload(squashedCommands))
+  }
+
+  private fun removeCommandFromListByPath(list: MutableList<FileSystemCommandPayload>, path: String) {
+    list.removeIf {
+      when(it) {
+        is FileSystemCommandPayload.Delete -> it.path == path
+        is FileSystemCommandPayload.Add -> it.path == path
+        else -> false
+      }
+    }
+  }
+}

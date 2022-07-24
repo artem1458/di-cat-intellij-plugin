@@ -1,5 +1,5 @@
 package com.github.artem1458.dicatplugin.exceptions
 
-class NodeJSNotFoundException : RuntimeException() {
+class DICatNodeJSNotFoundException : RuntimeException() {
   override val message: String = "NodeJS interpreter not found"
 }

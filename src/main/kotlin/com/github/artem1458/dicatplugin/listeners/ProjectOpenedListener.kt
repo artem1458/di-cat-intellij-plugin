@@ -1,5 +1,6 @@
 package com.github.artem1458.dicatplugin.listeners
 
+import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
 import com.github.artem1458.dicatplugin.services.DICatService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -9,8 +10,11 @@ internal class ProjectOpenedListener : ProjectManagerListener {
 
   override fun projectOpened(project: Project) {
     val diCatService = project.service<DICatService>()
-    project.service<DICatDocumentListener>()
+    val psiTreeChangeListener = project.service<DICatPsiTreeChangeListener>()
+    val commandExecutorService = project.service<DICatCommandExecutorService>()
 
-    diCatService.run()
+    commandExecutorService.start()
+    psiTreeChangeListener.listen()
+    diCatService.start()
   }
 }
