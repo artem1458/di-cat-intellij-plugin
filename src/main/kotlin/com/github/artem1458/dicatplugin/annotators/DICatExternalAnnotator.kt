@@ -3,10 +3,13 @@ package com.github.artem1458.dicatplugin.annotators
 import com.github.artem1458.dicatplugin.PsiUtils
 import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
+import com.intellij.lang.PsiBuilder
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.lang.annotation.ProblemGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -54,16 +57,22 @@ class DICatExternalAnnotator :
 
     val currentModificationStamp = PsiUtils.getModificationStamp(collectedInfo.psiFile)
     val responseModificationStamp = processFilesResponse.modificationStamps[collectedInfo.filePath]
+    val isCold = processFilesResponse.coldFilePaths.contains(collectedInfo.filePath)
 
-    LOGGER.info("annotate(): currentModificationStamp: $currentModificationStamp, responseModificationStamp: $responseModificationStamp")
+    LOGGER.info("annotate(): " +
+            "currentModificationStamp: $currentModificationStamp, " +
+            "responseModificationStamp: $responseModificationStamp, " +
+            "isCold: $isCold"
+    )
 
-    if (responseModificationStamp == null || responseModificationStamp == currentModificationStamp) {
+    if (responseModificationStamp == currentModificationStamp || isCold) {
       LOGGER.info("annotate(): applying annotation")
       return DICatAnnotationResultType.buildFromServiceResponse(processFilesResponse, collectedInfo)
     }
 
-    if (responseModificationStamp > currentModificationStamp) {
-      LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local"))
+    responseModificationStamp?.let {
+      if(responseModificationStamp > currentModificationStamp)
+        LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local"))
         .also { return null }
     }
 
@@ -87,6 +96,7 @@ class DICatExternalAnnotator :
 
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(TextRange(compilationMessage.position.startOffset, compilationMessage.position.endOffset))
+            .needsUpdateOnTyping(true)
             .create()
         }
       }

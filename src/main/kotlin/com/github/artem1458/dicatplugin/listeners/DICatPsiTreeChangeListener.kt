@@ -35,13 +35,15 @@ class DICatPsiTreeChangeListener(
     private fun onEvent(event: PsiTreeChangeEvent) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()
       val psiFile = event.file ?: return
-      val filePath = psiFile.originalFile.virtualFile.path
+      val isValid = PsiUtils.isValidFile(psiFile)
+
+      if (!isValid) return
 
       val command = ServiceCommand.FS(
         payload = FileSystemCommandPayload.Add(
-          path = filePath,
-          content = psiFile.originalFile.text,
-          modificationStamp = PsiUtils.getModificationStamp(psiFile),
+          path = PsiUtils.getFilePath(psiFile),
+          content = PsiUtils.getFileContent(psiFile),
+          modificationStamp = PsiUtils.getModificationStamp(psiFile)
         )
       )
 

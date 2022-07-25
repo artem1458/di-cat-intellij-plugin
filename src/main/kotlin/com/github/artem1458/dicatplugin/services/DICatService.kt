@@ -1,18 +1,16 @@
 package com.github.artem1458.dicatplugin.services
 
+import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
-import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.google.gson.Gson
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -29,7 +27,6 @@ class DICatService(
 
   fun start() {
     LOGGER.info("Starting DICat service")
-    val commandExecutorService = project.service<DICatCommandExecutorService>()
     val diCatProcess = DICatProcessBuilder.build(project)
 
     val diCatProcessListener = DICatProcessListener(diCatProcess)
@@ -42,7 +39,6 @@ class DICatService(
     processListener = diCatProcessListener
 
     LOGGER.info("Adding Process files command")
-    commandExecutorService.add(ServiceCommand.ProcessFiles())
   }
 
   fun sendCommand(command: ServiceCommand<*>): ServiceResponse {
@@ -67,25 +63,29 @@ class DICatService(
 
       LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
 
-//      restartDaemonCodeAnalyzer()
       repository.updateData(processFilesResponse)
+      restartDaemonCodeAnalyzer(processFilesResponse)
     }
   }
 
-  private fun restartDaemonCodeAnalyzer() {
+  private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
     LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
+
     ReadAction.run<Nothing> {
       val psiManager = PsiManager.getInstance(project)
       val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
 
       FileEditorManager.getInstance(project).allEditors.forEach { editor ->
-        val file = editor.file ?:
-        return@forEach Unit.also { LOGGER.info("VFile from editor not found, skipping restart") }
+        val file = editor.file
+          ?: return@forEach Unit.also { LOGGER.info("VFile from editor not found, skipping restart of daemonCodeAnalyzer") }
 
-        val psiFile = psiManager.findFile(file) ?:
-        return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart") }
+        val psiFile = psiManager.findFile(file)
+          ?: return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart of daemonCodeAnalyzer") }
 
-        LOGGER.info("Restarting Daemon Code Analyzer for file: ${file.path}")
+        if (!PsiUtils.isValidFile(psiFile))
+          return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
+
+        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}")
         daemonCodeAnalyzer.restart(psiFile)
       }
     }

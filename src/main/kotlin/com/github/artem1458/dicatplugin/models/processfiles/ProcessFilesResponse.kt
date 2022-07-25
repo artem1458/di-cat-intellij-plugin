@@ -2,7 +2,8 @@ package com.github.artem1458.dicatplugin.models.processfiles
 
 data class ProcessFilesResponse(
   val compilationMessages: List<CompilationMessage>,
-  val modificationStamps: Map<String, Long>
+  val modificationStamps: Map<String, Long>,
+  val coldFilePaths: Set<String>
 ) {
 
   data class CompilationMessage(
@@ -13,7 +14,6 @@ data class ProcessFilesResponse(
     val position: NodePosition,
     val contextDetails: ContextDetails?,
     val filePath: String,
-    val originalText: String
   )
 
   data class ContextDetails(

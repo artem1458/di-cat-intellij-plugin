@@ -17,4 +17,9 @@ object PsiUtils {
     else
       psiManager.findFile(virtualFile)?.manager?.modificationTracker?.modificationCount
   }
+
+  fun getFilePath(psiFile: PsiFile): String = psiFile.originalFile.virtualFile.path
+  fun getFileContent(psiFile: PsiFile): String = psiFile.originalFile.text
+
+  fun isValidFile(psiFile: PsiFile): Boolean = !psiFile.isDirectory && psiFile.isPhysical
 }

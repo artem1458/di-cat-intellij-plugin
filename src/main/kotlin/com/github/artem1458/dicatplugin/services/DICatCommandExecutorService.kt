@@ -48,8 +48,7 @@ class DICatCommandExecutorService(
   }
 
   private fun buildBatchFSCommand(fsCommands: List<FSServiceCommand>): BatchFSServiceCommand {
-    return ServiceCommand.BatchFS(BatchFileSystemCommandPayload(fsCommands.map { it.payload }))
-
+//    return ServiceCommand.BatchFS(BatchFileSystemCommandPayload(fsCommands.map { it.payload }))
     val addedPaths = mutableSetOf<String>()
     val squashedCommands = mutableListOf<FileSystemCommandPayload>()
 
