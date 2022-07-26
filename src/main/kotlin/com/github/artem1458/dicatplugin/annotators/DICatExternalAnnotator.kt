@@ -96,7 +96,6 @@ class DICatExternalAnnotator :
 
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(TextRange(compilationMessage.position.startOffset, compilationMessage.position.endOffset))
-            .needsUpdateOnTyping(true)
             .create()
         }
       }

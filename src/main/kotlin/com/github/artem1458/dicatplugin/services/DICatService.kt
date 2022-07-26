@@ -63,12 +63,12 @@ class DICatService(
 
       LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
 
+//      restartDaemonCodeAnalyzer()
       repository.updateData(processFilesResponse)
-      restartDaemonCodeAnalyzer(processFilesResponse)
     }
   }
 
-  private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
+  private fun restartDaemonCodeAnalyzer() {
     LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
 
     ReadAction.run<Nothing> {
