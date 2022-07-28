@@ -7,13 +7,16 @@ import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
 import com.google.gson.Gson
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
+import com.intellij.codeInsight.hints.ParameterHintsPassFactory
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 
 class DICatService(
@@ -63,17 +66,18 @@ class DICatService(
 
       LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
 
-//      restartDaemonCodeAnalyzer()
       repository.updateData(processFilesResponse)
+      restartDaemonCodeAnalyzer(processFilesResponse)
     }
   }
 
-  private fun restartDaemonCodeAnalyzer() {
-    LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
+  private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
+    ApplicationManager.getApplication().invokeLater {
+      LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
 
-    ReadAction.run<Nothing> {
       val psiManager = PsiManager.getInstance(project)
-      val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
+      val daemonCodeAnalyzer = DaemonCodeAnalyzerEx.getInstance(project)
+
 
       FileEditorManager.getInstance(project).allEditors.forEach { editor ->
         val file = editor.file
@@ -82,10 +86,20 @@ class DICatService(
         val psiFile = psiManager.findFile(file)
           ?: return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart of daemonCodeAnalyzer") }
 
+        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+
         if (!PsiUtils.isValidFile(psiFile))
           return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
 
-        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}")
+        //TODO Restart only for affected files (compare previousResponse and new response)
+
+        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}, modificationStamp: ${processFilesResponse.modificationStamps[file.path]}")
+
+        if (document != null) {
+          EditorFactory.getInstance().editors(document, project)
+            .forEach(ParameterHintsPassFactory::forceHintsUpdateOnNextPass)
+        }
+
         daemonCodeAnalyzer.restart(psiFile)
       }
     }

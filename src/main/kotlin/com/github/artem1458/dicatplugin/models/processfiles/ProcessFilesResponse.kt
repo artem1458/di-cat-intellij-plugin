@@ -6,6 +6,20 @@ data class ProcessFilesResponse(
   val coldFilePaths: Set<String>
 ) {
 
+  companion object {
+    val EMPTY = ProcessFilesResponse(
+      compilationMessages = emptyList(),
+      modificationStamps = emptyMap(),
+      coldFilePaths = emptySet()
+    )
+  }
+
+  fun isEmpty(): Boolean = this === EMPTY
+
+  fun hasSomethingByPath(path: String): Boolean =
+    compilationMessages.any { it.filePath == path } ||
+    coldFilePaths.contains(path)
+
   data class CompilationMessage(
     val details: String?,
     val code: String,

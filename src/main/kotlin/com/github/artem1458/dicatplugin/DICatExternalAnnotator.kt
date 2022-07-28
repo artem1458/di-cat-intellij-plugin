@@ -1,15 +1,11 @@
-package com.github.artem1458.dicatplugin.annotators
+package com.github.artem1458.dicatplugin
 
-import com.github.artem1458.dicatplugin.PsiUtils
 import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
-import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
-import com.intellij.lang.PsiBuilder
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.lang.annotation.ProblemGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -27,22 +23,26 @@ class DICatExternalAnnotator :
 
   override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean) =
     DICatCollectedInfo(
-      filePath = file.virtualFile.path,
+      filePath = PsiUtils.getFilePath(file),
       psiFile = file
-    )
+    ).also {
+      LOGGER.info("Info collected for file: ${it.filePath}")
+    }
 
   override fun doAnnotate(collectedInfo: DICatCollectedInfo?): DICatAnnotationResultType? {
+    LOGGER.info("doAnnotate(): Starting annotation process")
     collectedInfo ?: return null
     val project = collectedInfo.psiFile.project
     val statsRepository = project.getComponent(DICatStatsRepository::class.java)
 
-    return annotate(collectedInfo, statsRepository.getCurrent())
+    return myAnnotate(collectedInfo, statsRepository.getCurrent())
   }
 
-  private fun annotate(
+  private fun myAnnotate(
     collectedInfo: DICatCollectedInfo,
     futureProcessFilesResponse: Future<ProcessFilesResponse>,
   ): DICatAnnotationResultType? {
+    LOGGER.info("annotate(): Starting annotation process for file: ${collectedInfo.filePath}")
     val processFilesResponse = runCatching {
       futureProcessFilesResponse.get()
     }.getOrElse {
@@ -52,7 +52,9 @@ class DICatExternalAnnotator :
         LOGGER.info("Future is canceled", it)
       }
 
-      return null
+      return null.also{
+        LOGGER.info("annotate(): Skipping annotation process, returning null")
+      }
     }
 
     val currentModificationStamp = PsiUtils.getModificationStamp(collectedInfo.psiFile)
@@ -66,24 +68,25 @@ class DICatExternalAnnotator :
     )
 
     if (responseModificationStamp == currentModificationStamp || isCold) {
-      LOGGER.info("annotate(): applying annotation")
+      LOGGER.info("annotate(): applying annotation. file: ${collectedInfo.filePath}")
       return DICatAnnotationResultType.buildFromServiceResponse(processFilesResponse, collectedInfo)
     }
 
     responseModificationStamp?.let {
       if(responseModificationStamp > currentModificationStamp)
-        LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local"))
+        LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local. file: ${collectedInfo.filePath}"))
         .also { return null }
     }
 
-    LOGGER.info("annotate(): waiting more new timestamp")
+    LOGGER.info("annotate(): waiting more new timestamp. file: ${collectedInfo.filePath}")
     val project = collectedInfo.psiFile.project
     val statsRepository = project.getComponent(DICatStatsRepository::class.java)
 
-    return annotate(collectedInfo, statsRepository.getNext())
+    return myAnnotate(collectedInfo, statsRepository.getNext())
   }
 
   override fun apply(psiFile: PsiFile, annotationResult: DICatAnnotationResultType?, holder: AnnotationHolder) {
+    LOGGER.info("apply(): applying annotation for file: ${PsiUtils.getFilePath(psiFile)}")
     annotationResult?.messages?.forEach { compilationMessage ->
       when (compilationMessage.type) {
         ProcessFilesResponse.MessageType.INFO -> TODO()
