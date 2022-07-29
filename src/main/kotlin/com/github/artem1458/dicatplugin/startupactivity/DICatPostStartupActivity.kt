@@ -1,6 +1,6 @@
 package com.github.artem1458.dicatplugin.startupactivity
 
-import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.FSServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
@@ -23,9 +23,9 @@ class DICatPostStartupActivity : StartupActivity.Background {
         editor.file?.let(psiManager::findFile)?.let { psiFile ->
           FSServiceCommand.FS(
             FileSystemCommandPayload.Add(
-              path = PsiUtils.getFilePath(psiFile),
-              content = PsiUtils.getFileContent(psiFile),
-              modificationStamp = PsiUtils.getModificationStamp(psiFile),
+              path = FileUtils.getFilePath(psiFile),
+              content = FileUtils.getFileContent(psiFile),
+              modificationStamp = FileUtils.getModificationStamp(psiFile),
               isCold = true
             )
           )

@@ -1,19 +1,16 @@
 package com.github.artem1458.dicatplugin.listeners
 
-import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.FSServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
 import com.intellij.application.subscribe
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.FileEditorManagerListener.FILE_EDITOR_MANAGER
-import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 
@@ -38,9 +35,9 @@ class DICatEditorOpenedListener(
 
       PsiManager.getInstance(project).findFile(file)?.let { psiFile ->
         commandExecutorService.add(FSServiceCommand.FS(FileSystemCommandPayload.Add(
-          path = PsiUtils.getFilePath(psiFile),
-          content = PsiUtils.getFileContent(psiFile),
-          modificationStamp = PsiUtils.getModificationStamp(psiFile),
+          path = FileUtils.getFilePath(psiFile),
+          content = FileUtils.getFileContent(psiFile),
+          modificationStamp = FileUtils.getModificationStamp(psiFile),
           isCold = true
         )))
       }

@@ -1,6 +1,6 @@
 package com.github.artem1458.dicatplugin.services
 
-import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
@@ -12,6 +12,7 @@ import com.intellij.codeInsight.hints.ParameterHintsPassFactory
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -60,7 +61,7 @@ class DICatService(
     response.payload ?: return Unit.also { LOGGER.info("Response has no payload, skipping") }
 
     if (response.type == ServiceResponse.ResponseType.PROCESS_FILES) {
-      val repository = project.getComponent(DICatStatsRepository::class.java)
+      val repository = project.service<DICatStatsRepository>()
 
       val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
 
@@ -78,7 +79,6 @@ class DICatService(
       val psiManager = PsiManager.getInstance(project)
       val daemonCodeAnalyzer = DaemonCodeAnalyzerEx.getInstance(project)
 
-
       FileEditorManager.getInstance(project).allEditors.forEach { editor ->
         val file = editor.file
           ?: return@forEach Unit.also { LOGGER.info("VFile from editor not found, skipping restart of daemonCodeAnalyzer") }
@@ -86,19 +86,19 @@ class DICatService(
         val psiFile = psiManager.findFile(file)
           ?: return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart of daemonCodeAnalyzer") }
 
-        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+//        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
 
-        if (!PsiUtils.isValidFile(psiFile))
+        if (!FileUtils.isValidFile(psiFile))
           return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
 
         //TODO Restart only for affected files (compare previousResponse and new response)
 
         LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}, modificationStamp: ${processFilesResponse.modificationStamps[file.path]}")
 
-        if (document != null) {
-          EditorFactory.getInstance().editors(document, project)
-            .forEach(ParameterHintsPassFactory::forceHintsUpdateOnNextPass)
-        }
+//        if (document != null) {
+//          EditorFactory.getInstance().editors(document, project)
+//            .forEach(ParameterHintsPassFactory::forceHintsUpdateOnNextPass)
+//        }
 
         daemonCodeAnalyzer.restart(psiFile)
       }

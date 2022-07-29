@@ -1,6 +1,7 @@
 package com.github.artem1458.dicatplugin.listeners
 
-import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.DICatModificationStampTracker
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
@@ -14,7 +15,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 
 
-//Unused
 class DICatDocumentListener(
   project: Project
 ) : Disposable {
@@ -37,18 +37,20 @@ class DICatDocumentListener(
 
     override fun afterDocumentChange(document: Document) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()
+      val modificationStampTracker = project.service<DICatModificationStampTracker>()
+
+      modificationStampTracker.inc(document)
+
       val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return
-      val filePath = psiFile.originalFile.virtualFile.path
 
       val command = ServiceCommand.FS(
         payload = FileSystemCommandPayload.Add(
-          path = filePath,
+          path = FileUtils.getFilePath(psiFile),
           content = psiFile.originalFile.text,
-          modificationStamp = PsiUtils.getModificationStamp(psiFile),
+          modificationStamp = FileUtils.getModificationStamp(psiFile),
         )
       )
 
-      LOGGER.info("Sending file with psiModStamp: ${psiFile.modificationStamp}, psiOriginalModStamp ${PsiUtils.getModificationStamp(psiFile)}}")
       commandExecutorService.add(command)
     }
   }

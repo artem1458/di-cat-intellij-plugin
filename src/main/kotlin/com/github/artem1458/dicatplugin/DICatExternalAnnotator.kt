@@ -6,6 +6,7 @@ import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -23,7 +24,7 @@ class DICatExternalAnnotator :
 
   override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean) =
     DICatCollectedInfo(
-      filePath = PsiUtils.getFilePath(file),
+      filePath = FileUtils.getFilePath(file),
       psiFile = file
     ).also {
       LOGGER.info("Info collected for file: ${it.filePath}")
@@ -33,7 +34,7 @@ class DICatExternalAnnotator :
     LOGGER.info("doAnnotate(): Starting annotation process")
     collectedInfo ?: return null
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.getComponent(DICatStatsRepository::class.java)
+    val statsRepository = project.service<DICatStatsRepository>()
 
     return myAnnotate(collectedInfo, statsRepository.getCurrent())
   }
@@ -57,7 +58,7 @@ class DICatExternalAnnotator :
       }
     }
 
-    val currentModificationStamp = PsiUtils.getModificationStamp(collectedInfo.psiFile)
+    val currentModificationStamp = FileUtils.getModificationStamp(collectedInfo.psiFile)
     val responseModificationStamp = processFilesResponse.modificationStamps[collectedInfo.filePath]
     val isCold = processFilesResponse.coldFilePaths.contains(collectedInfo.filePath)
 
@@ -67,26 +68,26 @@ class DICatExternalAnnotator :
             "isCold: $isCold"
     )
 
-    if (responseModificationStamp == currentModificationStamp || isCold) {
+    if (responseModificationStamp == currentModificationStamp) {
       LOGGER.info("annotate(): applying annotation. file: ${collectedInfo.filePath}")
       return DICatAnnotationResultType.buildFromServiceResponse(processFilesResponse, collectedInfo)
     }
 
-    responseModificationStamp?.let {
+    if (responseModificationStamp !== null && currentModificationStamp !== null) {
       if(responseModificationStamp > currentModificationStamp)
         LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local. file: ${collectedInfo.filePath}"))
-        .also { return null }
+          .also { return null }
     }
 
     LOGGER.info("annotate(): waiting more new timestamp. file: ${collectedInfo.filePath}")
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.getComponent(DICatStatsRepository::class.java)
+    val statsRepository = project.service<DICatStatsRepository>()
 
     return myAnnotate(collectedInfo, statsRepository.getNext())
   }
 
   override fun apply(psiFile: PsiFile, annotationResult: DICatAnnotationResultType?, holder: AnnotationHolder) {
-    LOGGER.info("apply(): applying annotation for file: ${PsiUtils.getFilePath(psiFile)}")
+    LOGGER.info("apply(): applying annotation for file: ${FileUtils.getFilePath(psiFile)}")
     annotationResult?.messages?.forEach { compilationMessage ->
       when (compilationMessage.type) {
         ProcessFilesResponse.MessageType.INFO -> TODO()

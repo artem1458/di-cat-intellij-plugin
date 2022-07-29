@@ -16,8 +16,12 @@
         />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatService"/>
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatCommandExecutorService" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatEditorOpenedListener" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiModificationTrackerListener" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.components.DICatStatsRepository" />
         <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>
 <!--        <postStartupActivity implementation="com.github.artem1458.dicatplugin.startupactivity.DICatPostStartupActivity" />-->
     </extensions>
@@ -26,14 +30,8 @@
         <JsonSchema.ProviderFactory implementation="com.github.artem1458.dicatplugin.configfile.DICatConfigSchemaProviderFactory"/>
     </extensions>
 
-    <project-components>
-        <component>
-            <implementation-class>com.github.artem1458.dicatplugin.components.DICatStatsRepository</implementation-class>
-        </component>
-    </project-components>
-
     <applicationListeners>
-        <listener class="com.github.artem1458.dicatplugin.listeners.ProjectOpenedListener"
+        <listener class="com.github.artem1458.dicatplugin.listeners.DICatProjectOpenedListener"
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 

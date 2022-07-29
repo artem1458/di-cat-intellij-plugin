@@ -1,6 +1,6 @@
 package com.github.artem1458.dicatplugin.listeners
 
-import com.github.artem1458.dicatplugin.PsiUtils
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
@@ -35,15 +35,15 @@ class DICatPsiTreeChangeListener(
     private fun onEvent(event: PsiTreeChangeEvent) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()
       val psiFile = event.file ?: return
-      val isValid = PsiUtils.isValidFile(psiFile)
+      val isValid = FileUtils.isValidFile(psiFile)
 
       if (!isValid) return
 
       val command = ServiceCommand.FS(
         payload = FileSystemCommandPayload.Add(
-          path = PsiUtils.getFilePath(psiFile),
-          content = PsiUtils.getFileContent(psiFile),
-          modificationStamp = PsiUtils.getModificationStamp(psiFile)
+          path = FileUtils.getFilePath(psiFile),
+          content = FileUtils.getFileContent(psiFile),
+          modificationStamp = FileUtils.getModificationStamp(psiFile)
         )
       )
 
