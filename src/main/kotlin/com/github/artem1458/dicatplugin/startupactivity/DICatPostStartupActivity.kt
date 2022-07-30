@@ -26,7 +26,6 @@ class DICatPostStartupActivity : StartupActivity.Background {
               path = FileUtils.getFilePath(psiFile),
               content = FileUtils.getFileContent(psiFile),
               modificationStamp = FileUtils.getModificationStamp(psiFile),
-              isCold = true
             )
           )
         }

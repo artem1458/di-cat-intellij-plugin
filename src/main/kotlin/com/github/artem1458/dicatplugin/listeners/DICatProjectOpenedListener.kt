@@ -11,16 +11,14 @@ internal class DICatProjectOpenedListener : ProjectManagerListener {
   override fun projectOpened(project: Project) {
     val diCatService = project.service<DICatService>()
     val psiTreeChangeListener = project.service<DICatPsiTreeChangeListener>()
-    val editorOpenedListener = project.service<DICatEditorOpenedListener>()
+//    val editorOpenedListener = project.service<DICatEditorOpenedListener>()
     val commandExecutorService = project.service<DICatCommandExecutorService>()
     val documentListener = project.service<DICatDocumentListener>()
-    val DICatPsiModificationTrackerListener = project.service<DICatPsiModificationTrackerListener>()
 
     commandExecutorService.start()
     documentListener.listen()
 //    DICatPsiModificationTrackerListener.listen()
-//    psiTreeChangeListener.listen()
-    editorOpenedListener.listen()
+//    editorOpenedListener.listen()
     diCatService.start()
   }
 }

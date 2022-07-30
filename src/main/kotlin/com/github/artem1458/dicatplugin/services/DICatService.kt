@@ -7,17 +7,14 @@ import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
 import com.google.gson.Gson
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
-import com.intellij.codeInsight.hints.ParameterHintsPassFactory
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 
 class DICatService(
@@ -43,6 +40,7 @@ class DICatService(
     processListener = diCatProcessListener
 
     LOGGER.info("Adding Process files command")
+    project.service<DICatCommandExecutorService>().add(ServiceCommand.ProcessFiles())
   }
 
   fun sendCommand(command: ServiceCommand<*>): ServiceResponse {
@@ -60,24 +58,32 @@ class DICatService(
     LOGGER.info("Handling response with type: ${response.type}")
     response.payload ?: return Unit.also { LOGGER.info("Response has no payload, skipping") }
 
-    if (response.type == ServiceResponse.ResponseType.PROCESS_FILES) {
-      val repository = project.service<DICatStatsRepository>()
+    when (response.type) {
+      ServiceResponse.ResponseType.PROCESS_FILES -> {
+        val repository = project.service<DICatStatsRepository>()
 
-      val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
+        val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
 
-      LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
+        LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
 
-      repository.updateData(processFilesResponse)
-      restartDaemonCodeAnalyzer(processFilesResponse)
+        repository.updateData(processFilesResponse)
+        restartDaemonCodeAnalyzer(processFilesResponse)
+      }
+      ServiceResponse.ResponseType.ERROR -> {
+        LOGGER.info(response.payload)
+      }
+      ServiceResponse.ResponseType.FS -> {}
+      ServiceResponse.ResponseType.INIT -> {}
+      ServiceResponse.ResponseType.EXIT -> {}
     }
   }
 
   private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
-    ApplicationManager.getApplication().invokeLater {
+    ReadAction.run<Nothing> {
       LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
 
       val psiManager = PsiManager.getInstance(project)
-      val daemonCodeAnalyzer = DaemonCodeAnalyzerEx.getInstance(project)
+      val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
 
       FileEditorManager.getInstance(project).allEditors.forEach { editor ->
         val file = editor.file
@@ -86,19 +92,12 @@ class DICatService(
         val psiFile = psiManager.findFile(file)
           ?: return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart of daemonCodeAnalyzer") }
 
-//        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
-
         if (!FileUtils.isValidFile(psiFile))
           return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
 
         //TODO Restart only for affected files (compare previousResponse and new response)
 
         LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}, modificationStamp: ${processFilesResponse.modificationStamps[file.path]}")
-
-//        if (document != null) {
-//          EditorFactory.getInstance().editors(document, project)
-//            .forEach(ParameterHintsPassFactory::forceHintsUpdateOnNextPass)
-//        }
 
         daemonCodeAnalyzer.restart(psiFile)
       }

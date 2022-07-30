@@ -28,8 +28,6 @@ interface FileSystemCommandPayload {
     val path: String,
     val content: String,
     val modificationStamp: Long?,
-    //If true - should ignore modificationStamp in annotator. Determines are this file was just opened and psi structure was not ready yet
-    val isCold: Boolean = false
   ) : FileSystemCommandPayload {
     override val type = FSCommandType.ADD
   }

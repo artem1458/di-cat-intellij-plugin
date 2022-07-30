@@ -7,7 +7,6 @@ import org.jetbrains.annotations.ApiStatus.Internal
 
 data class ServiceCommand<Payload>(
   val type: CommandType,
-
   val payload: Payload,
 ) {
 

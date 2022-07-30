@@ -60,12 +60,10 @@ class DICatExternalAnnotator :
 
     val currentModificationStamp = FileUtils.getModificationStamp(collectedInfo.psiFile)
     val responseModificationStamp = processFilesResponse.modificationStamps[collectedInfo.filePath]
-    val isCold = processFilesResponse.coldFilePaths.contains(collectedInfo.filePath)
 
     LOGGER.info("annotate(): " +
             "currentModificationStamp: $currentModificationStamp, " +
-            "responseModificationStamp: $responseModificationStamp, " +
-            "isCold: $isCold"
+            "responseModificationStamp: $responseModificationStamp, "
     )
 
     if (responseModificationStamp == currentModificationStamp) {

@@ -9,7 +9,7 @@ import com.intellij.psi.PsiFile
 
 class DICatModificationStampTracker(
   val project: Project
-): Disposable {
+) : Disposable {
 
   private val stamps = mutableMapOf<String, Long>()
 

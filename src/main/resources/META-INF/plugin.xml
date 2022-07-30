@@ -18,8 +18,7 @@
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatCommandExecutorService" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatEditorOpenedListener" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiModificationTrackerListener" />
+<!--        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatEditorOpenedListener" />-->
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker" />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.components.DICatStatsRepository" />
         <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>

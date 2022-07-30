@@ -2,6 +2,7 @@ package com.github.artem1458.dicatplugin.services
 
 import com.github.artem1458.dicatplugin.models.BatchFSServiceCommand
 import com.github.artem1458.dicatplugin.models.FSServiceCommand
+import com.github.artem1458.dicatplugin.models.ProcessFilesServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.BatchFileSystemCommandPayload
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
@@ -21,10 +22,13 @@ class DICatCommandExecutorService(
 
   override fun executeAll(tasks: Iterable<ServiceCommand<*>>) {
     val fsCommands = mutableListOf<FSServiceCommand>()
+    //TODO Handle these commands when they will be added
+    val processFilesCommands = mutableListOf<ProcessFilesServiceCommand>()
 
     tasks.forEach { task ->
       when (task.type) {
         ServiceCommand.CommandType.FS -> fsCommands.add(task as FSServiceCommand)
+        ServiceCommand.CommandType.PROCESS_FILES -> processFilesCommands.add(task as ProcessFilesServiceCommand)
         else -> {}
       }
     }
@@ -33,7 +37,8 @@ class DICatCommandExecutorService(
 
     val fsServiceCommand = buildBatchFSCommand(fsCommands)
 
-    executeCommand(fsServiceCommand)
+    if (fsServiceCommand.payload.commands.isNotEmpty())
+      executeCommand(fsServiceCommand)
 
     val processFilesCommand = ServiceCommand.ProcessFiles()
 
