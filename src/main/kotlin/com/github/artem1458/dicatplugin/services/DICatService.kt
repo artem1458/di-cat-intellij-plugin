@@ -1,7 +1,7 @@
 package com.github.artem1458.dicatplugin.services
 
 import com.github.artem1458.dicatplugin.FileUtils
-import com.github.artem1458.dicatplugin.components.DICatStatsRepository
+import com.github.artem1458.dicatplugin.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse

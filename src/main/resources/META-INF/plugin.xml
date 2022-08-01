@@ -20,7 +20,7 @@
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener" />
 <!--        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatEditorOpenedListener" />-->
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.components.DICatStatsRepository" />
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatStatsRepository" />
         <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>
 <!--        <postStartupActivity implementation="com.github.artem1458.dicatplugin.startupactivity.DICatPostStartupActivity" />-->
     </extensions>

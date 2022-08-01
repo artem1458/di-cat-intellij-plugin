@@ -1,6 +1,5 @@
 package com.github.artem1458.dicatplugin
 
-import com.github.artem1458.dicatplugin.components.DICatStatsRepository
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
 import com.intellij.lang.annotation.AnnotationHolder

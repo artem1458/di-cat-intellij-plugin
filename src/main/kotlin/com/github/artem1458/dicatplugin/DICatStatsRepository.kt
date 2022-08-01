@@ -1,4 +1,4 @@
-package com.github.artem1458.dicatplugin.components
+package com.github.artem1458.dicatplugin
 
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.intellij.openapi.Disposable
@@ -18,14 +18,12 @@ class DICatStatsRepository : Disposable {
   fun updateData(data: ProcessFilesResponse) {
     LOGGER.info("Updating data, modificationStamps: ${data.modificationStamps}")
 
-    synchronized(currentData) {
-      synchronized(nextFutures) {
-        currentData = data
-        nextFutures.forEach {
-          if (!it.isDone) it.complete(data)
-        }
-        nextFutures.clear()
+    allSynchronized(currentData, nextFutures) {
+      currentData = data
+      nextFutures.forEach {
+        if (!it.isDone) it.complete(data)
       }
+      nextFutures.clear()
     }
   }
 
