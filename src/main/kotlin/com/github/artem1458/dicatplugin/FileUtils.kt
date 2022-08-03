@@ -7,17 +7,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 
 object FileUtils {
-
-//  fun getModificationStamp(psiFile: PsiFile): Long = psiFile.manager.modificationTracker.modificationCount
-//  fun getModificationStamp(virtualFile: VirtualFile, project: Project): Long? {
-//    val psiManager = PsiManager.getInstance(project)
-//
-//    return if (psiManager.isDisposed)
-//      null
-//    else
-//      psiManager.findFile(virtualFile)?.manager?.modificationTracker?.modificationCount
-//  }
-
   fun getModificationStamp(psiFile: PsiFile): Long? =
     getFilePath(psiFile).let(psiFile.project.service<DICatModificationStampTracker>()::get)
   fun getModificationStamp(virtualFile: VirtualFile, project: Project): Long? {

@@ -1,6 +1,7 @@
 package com.github.artem1458.dicatplugin
 
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
+import com.github.artem1458.dicatplugin.utils.allSynchronized
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CompletableFuture
@@ -25,6 +26,11 @@ class DICatStatsRepository : Disposable {
       }
       nextFutures.clear()
     }
+  }
+
+  fun getCurrentSync(): ProcessFilesResponse? = synchronized(currentData) {
+    if (currentData.isEmpty()) null
+    else currentData
   }
 
   fun getCurrent(): Future<ProcessFilesResponse> = synchronized(currentData) {

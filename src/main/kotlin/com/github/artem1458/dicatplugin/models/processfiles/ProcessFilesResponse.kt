@@ -1,14 +1,18 @@
 package com.github.artem1458.dicatplugin.models.processfiles
 
+import com.github.artem1458.dicatplugin.models.processfiles.statistics.BaseStatistics
+
 data class ProcessFilesResponse(
   val compilationMessages: List<CompilationMessage>,
-  val modificationStamps: Map<String, Long>
+  val modificationStamps: Map<String, Long>,
+  val statistics: List<BaseStatistics>
 ) {
 
   companion object {
     val EMPTY = ProcessFilesResponse(
       compilationMessages = emptyList(),
       modificationStamps = emptyMap(),
+      statistics = emptyList()
     )
   }
 
@@ -31,14 +35,6 @@ data class ProcessFilesResponse(
     val name: String,
     val path: String,
     val namePosition: NodePosition,
-  )
-
-  data class NodePosition(
-    val line: Int,
-    val startColumn: Int,
-    val endColumn: Int,
-    val startOffset: Int,
-    val endOffset: Int
   )
 
   enum class MessageType {

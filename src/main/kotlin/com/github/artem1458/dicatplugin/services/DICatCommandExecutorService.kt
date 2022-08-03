@@ -22,7 +22,6 @@ class DICatCommandExecutorService(
 
   override fun executeAll(tasks: Iterable<ServiceCommand<*>>) {
     val fsCommands = mutableListOf<FSServiceCommand>()
-    //TODO Handle these commands when they will be added
     val processFilesCommands = mutableListOf<ProcessFilesServiceCommand>()
 
     tasks.forEach { task ->
@@ -53,7 +52,6 @@ class DICatCommandExecutorService(
   }
 
   private fun buildBatchFSCommand(fsCommands: List<FSServiceCommand>): BatchFSServiceCommand {
-//    return ServiceCommand.BatchFS(BatchFileSystemCommandPayload(fsCommands.map { it.payload }))
     val addedPaths = mutableSetOf<String>()
     val squashedCommands = mutableListOf<FileSystemCommandPayload>()
 

@@ -91,12 +91,16 @@ class DICatExternalAnnotator :
         ProcessFilesResponse.MessageType.WARNING -> TODO()
 
         ProcessFilesResponse.MessageType.ERROR -> {
+          if (!DICatPsiUtils.isValidRangeInFile(psiFile, compilationMessage.position))
+            LOGGER.error("Response position is not valid for file: ${FileUtils.getFilePath(psiFile)}")
+              .also { return }
+
           val message = compilationMessage.details
             ?.let { details -> """${compilationMessage.code}: ${compilationMessage.description} $details""" }
             ?: compilationMessage.description
 
           holder.newAnnotation(HighlightSeverity.ERROR, message)
-            .range(TextRange(compilationMessage.position.startOffset, compilationMessage.position.endOffset))
+            .range(compilationMessage.position.asTextRange())
             .create()
         }
       }

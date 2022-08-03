@@ -1,4 +1,4 @@
-package com.github.artem1458.dicatplugin
+package com.github.artem1458.dicatplugin.utils
 
 fun <R> allSynchronized(lock: Any, vararg locks: Any, block: () -> R): R =
   _allSynchronized(lock, *locks, block = block)

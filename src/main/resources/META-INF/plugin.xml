@@ -15,18 +15,21 @@
                 fieldName="INSTANCE"
         />
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatService"/>
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatCommandExecutorService" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener" />
-<!--        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatEditorOpenedListener" />-->
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker" />
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatStatsRepository" />
-        <externalAnnotator language="JavaScript" implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>
-<!--        <postStartupActivity implementation="com.github.artem1458.dicatplugin.startupactivity.DICatPostStartupActivity" />-->
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.services.DICatCommandExecutorService"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatStatsRepository"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.linemarker.DICatBeanDeclarationLineMarkerProvider"/>
+        <externalAnnotator language="JavaScript"
+                           implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>
+        <codeInsight.lineMarkerProvider language="JavaScript"
+                                        implementationClass="com.github.artem1458.dicatplugin.linemarker.DICatLineMarkerProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="JavaScript">
-        <JsonSchema.ProviderFactory implementation="com.github.artem1458.dicatplugin.configfile.DICatConfigSchemaProviderFactory"/>
+        <JsonSchema.ProviderFactory
+                implementation="com.github.artem1458.dicatplugin.configfile.DICatConfigSchemaProviderFactory"/>
     </extensions>
 
     <applicationListeners>
@@ -35,6 +38,7 @@
     </applicationListeners>
 
     <projectListeners>
-        <listener class="com.github.artem1458.dicatplugin.listeners.DICatBulkVirtualFileListener" topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+        <listener class="com.github.artem1458.dicatplugin.listeners.DICatBulkVirtualFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     </projectListeners>
 </idea-plugin>
