@@ -1,16 +1,18 @@
 package com.github.artem1458.dicatplugin.services
 
-import com.github.artem1458.dicatplugin.FileUtils
+import com.github.artem1458.dicatplugin.DICatModificationStampTracker
 import com.github.artem1458.dicatplugin.DICatStatsRepository
+import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
+import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesCommandPayload
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
 import com.google.gson.Gson
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -27,6 +29,7 @@ class DICatService(
   private var processListener: DICatProcessListener? = null
 
   fun start() {
+    val modificationStampTracker = project.service<DICatModificationStampTracker>()
     LOGGER.info("Starting DICat service")
     val diCatProcess = DICatProcessBuilder.build(project)
 
@@ -40,7 +43,9 @@ class DICatService(
     processListener = diCatProcessListener
 
     LOGGER.info("Adding Process files command")
-    project.service<DICatCommandExecutorService>().add(ServiceCommand.ProcessFiles())
+    project.service<DICatCommandExecutorService>().add(
+      ServiceCommand.ProcessFiles(ProcessFilesCommandPayload(projectModificationStamp = modificationStampTracker.get()))
+    )
   }
 
   fun sendCommand(command: ServiceCommand<*>): ServiceResponse {
@@ -64,14 +69,14 @@ class DICatService(
 
         val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
 
-        LOGGER.info("Response timestamps: ${processFilesResponse.modificationStamps}")
-
         repository.updateData(processFilesResponse)
         restartDaemonCodeAnalyzer(processFilesResponse)
       }
+
       ServiceResponse.ResponseType.ERROR -> {
         LOGGER.info(response.payload)
       }
+
       ServiceResponse.ResponseType.FS -> {}
       ServiceResponse.ResponseType.INIT -> {}
       ServiceResponse.ResponseType.EXIT -> {}
@@ -79,9 +84,9 @@ class DICatService(
   }
 
   private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
-    ReadAction.run<Nothing> {
-      LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
+    LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
 
+    ApplicationManager.getApplication().invokeLater {
       val psiManager = PsiManager.getInstance(project)
       val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
 
@@ -95,9 +100,7 @@ class DICatService(
         if (!FileUtils.isValidFile(psiFile))
           return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
 
-        //TODO Restart only for affected files (compare previousResponse and new response)
-
-        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}, modificationStamp: ${processFilesResponse.modificationStamps[file.path]}")
+        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}")
 
         daemonCodeAnalyzer.restart(psiFile)
       }

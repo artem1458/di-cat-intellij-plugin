@@ -19,7 +19,6 @@ interface FileSystemCommandPayload {
     val oldPath: String,
     val newPath: String,
     val content: String,
-    val modificationStamp: Long?
   ) : FileSystemCommandPayload {
     override val type = FSCommandType.MOVE
   }
@@ -27,7 +26,6 @@ interface FileSystemCommandPayload {
   data class Add(
     val path: String,
     val content: String,
-    val modificationStamp: Long?,
   ) : FileSystemCommandPayload {
     override val type = FSCommandType.ADD
   }

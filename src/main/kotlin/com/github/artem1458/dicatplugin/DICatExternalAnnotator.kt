@@ -26,7 +26,7 @@ class DICatExternalAnnotator :
       filePath = FileUtils.getFilePath(file),
       psiFile = file
     ).also {
-      LOGGER.info("Info collected for file: ${it.filePath}")
+      LOGGER.info("collectInformation(): Info collected for file: ${it.filePath}")
     }
 
   override fun doAnnotate(collectedInfo: DICatCollectedInfo?): DICatAnnotationResultType? {
@@ -42,7 +42,6 @@ class DICatExternalAnnotator :
     collectedInfo: DICatCollectedInfo,
     futureProcessFilesResponse: Future<ProcessFilesResponse>,
   ): DICatAnnotationResultType? {
-    LOGGER.info("annotate(): Starting annotation process for file: ${collectedInfo.filePath}")
     val processFilesResponse = runCatching {
       futureProcessFilesResponse.get()
     }.getOrElse {
@@ -52,29 +51,28 @@ class DICatExternalAnnotator :
         LOGGER.info("Future is canceled", it)
       }
 
-      return null.also{
+      return null.also {
         LOGGER.info("annotate(): Skipping annotation process, returning null")
       }
     }
 
-    val currentModificationStamp = FileUtils.getModificationStamp(collectedInfo.psiFile)
-    val responseModificationStamp = processFilesResponse.modificationStamps[collectedInfo.filePath]
+    val currentModificationStamp = collectedInfo.psiFile.project.service<DICatModificationStampTracker>().get()
+    val responseModificationStamp = processFilesResponse.projectModificationStamp
 
-    LOGGER.info("annotate(): " +
-            "currentModificationStamp: $currentModificationStamp, " +
-            "responseModificationStamp: $responseModificationStamp, "
+    LOGGER.info(
+      "annotate(): " +
+        "currentModificationStamp: $currentModificationStamp, " +
+        "responseModificationStamp: $responseModificationStamp, "
     )
 
     if (responseModificationStamp == currentModificationStamp) {
-      LOGGER.info("annotate(): applying annotation. file: ${collectedInfo.filePath}")
+      LOGGER.info("annotate(): responseModificationStamp == currentModificationStamp. file: ${collectedInfo.filePath}")
       return DICatAnnotationResultType.buildFromServiceResponse(processFilesResponse, collectedInfo)
     }
 
-    if (responseModificationStamp !== null && currentModificationStamp !== null) {
-      if(responseModificationStamp > currentModificationStamp)
-        LOGGER.error(IllegalStateException("Modification stamp from service response is bigger that local. file: ${collectedInfo.filePath}"))
-          .also { return null }
-    }
+    if (responseModificationStamp > currentModificationStamp)
+      LOGGER.error(IllegalStateException("Modification stamp from service response is higher than local. file: ${collectedInfo.filePath}"))
+        .also { return null }
 
     LOGGER.info("annotate(): waiting more new timestamp. file: ${collectedInfo.filePath}")
     val project = collectedInfo.psiFile.project
@@ -85,19 +83,31 @@ class DICatExternalAnnotator :
 
   override fun apply(psiFile: PsiFile, annotationResult: DICatAnnotationResultType?, holder: AnnotationHolder) {
     LOGGER.info("apply(): applying annotation for file: ${FileUtils.getFilePath(psiFile)}")
-    annotationResult?.messages?.forEach { compilationMessage ->
+
+    val messages = annotationResult?.messages
+      ?: return Unit.also { LOGGER.info("apply(): have no messages to process, file: ${FileUtils.getFilePath(psiFile)}") }
+
+    messages.forEach { compilationMessage ->
       when (compilationMessage.type) {
         ProcessFilesResponse.MessageType.INFO -> TODO()
         ProcessFilesResponse.MessageType.WARNING -> TODO()
 
         ProcessFilesResponse.MessageType.ERROR -> {
+          LOGGER.info("apply(): Processing message with type ERROR, file: ${FileUtils.getFilePath(psiFile)}")
           if (!DICatPsiUtils.isValidRangeInFile(psiFile, compilationMessage.position))
-            LOGGER.error("Response position is not valid for file: ${FileUtils.getFilePath(psiFile)}")
-              .also { return }
+            return@forEach Unit
+              .also { LOGGER.error("Response position is not valid for file: ${FileUtils.getFilePath(psiFile)}") }
 
           val message = compilationMessage.details
             ?.let { details -> """${compilationMessage.code}: ${compilationMessage.description} $details""" }
-            ?: compilationMessage.description
+            ?: """${compilationMessage.code}: ${compilationMessage.description}"""
+
+          LOGGER.info("apply(): Adding new annotation with message: $message, file: ${FileUtils.getFilePath(psiFile)}")
+          runCatching {
+            LOGGER.info("""apply(): responseNodeText: ${compilationMessage.nodeText}, fileNodeText: ${psiFile.text.substring(compilationMessage.position.startOffset, compilationMessage.position.endOffset)}""")
+          }.onFailure {
+            LOGGER.warn(it)
+          }
 
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(compilationMessage.position.asTextRange())

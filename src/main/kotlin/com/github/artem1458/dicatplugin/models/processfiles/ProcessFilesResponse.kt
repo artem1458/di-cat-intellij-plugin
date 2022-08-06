@@ -4,15 +4,15 @@ import com.github.artem1458.dicatplugin.models.processfiles.statistics.BaseStati
 
 data class ProcessFilesResponse(
   val compilationMessages: List<CompilationMessage>,
-  val modificationStamps: Map<String, Long>,
+  val projectModificationStamp: Long,
   val statistics: List<BaseStatistics>
 ) {
 
   companion object {
     val EMPTY = ProcessFilesResponse(
       compilationMessages = emptyList(),
-      modificationStamps = emptyMap(),
-      statistics = emptyList()
+      statistics = emptyList(),
+      projectModificationStamp = 0
     )
   }
 
@@ -29,6 +29,7 @@ data class ProcessFilesResponse(
     val position: NodePosition,
     val contextDetails: ContextDetails?,
     val filePath: String,
+    val nodeText: String,
   )
 
   data class ContextDetails(

@@ -39,7 +39,6 @@ class DICatEditorOpenedListener(
         commandExecutorService.add(FSServiceCommand.FS(FileSystemCommandPayload.Add(
           path = FileUtils.getFilePath(psiFile),
           content = FileUtils.getFileContent(psiFile),
-          modificationStamp = FileUtils.getModificationStamp(psiFile),
         )))
       }
     }

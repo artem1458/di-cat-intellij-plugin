@@ -1,5 +1,6 @@
 package com.github.artem1458.dicatplugin.listeners
 
+import com.github.artem1458.dicatplugin.DICatModificationStampTracker
 import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
@@ -22,9 +23,7 @@ class DICatPsiTreeChangeListener(
     PsiManager.getInstance(project).addPsiTreeChangeListener(listenerInstance, this)
   }
 
-  override fun dispose() {
-    PsiManager.getInstance(project).removePsiTreeChangeListener(listenerInstance)
-  }
+  override fun dispose() {}
 
   private class Listener(
     private val project: Project
@@ -34,6 +33,7 @@ class DICatPsiTreeChangeListener(
 
     private fun onEvent(event: PsiTreeChangeEvent) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()
+      val modificationStampTracker = project.service<DICatModificationStampTracker>()
       val psiFile = event.file ?: return
       val isValid = FileUtils.isValidFile(psiFile)
 
@@ -43,10 +43,10 @@ class DICatPsiTreeChangeListener(
         payload = FileSystemCommandPayload.Add(
           path = FileUtils.getFilePath(psiFile),
           content = FileUtils.getFileContent(psiFile),
-          modificationStamp = FileUtils.getModificationStamp(psiFile)
         )
       )
 
+      modificationStampTracker.inc()
       commandExecutorService.add(command)
     }
 

@@ -1,11 +1,13 @@
 package com.github.artem1458.dicatplugin.services
 
+import com.github.artem1458.dicatplugin.DICatModificationStampTracker
 import com.github.artem1458.dicatplugin.models.BatchFSServiceCommand
 import com.github.artem1458.dicatplugin.models.FSServiceCommand
 import com.github.artem1458.dicatplugin.models.ProcessFilesServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.BatchFileSystemCommandPayload
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
+import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesCommandPayload
 import com.github.artem1458.dicatplugin.taskqueue.DICatAbstractTaskExecutorQueue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
@@ -21,6 +23,7 @@ class DICatCommandExecutorService(
   }
 
   override fun executeAll(tasks: Iterable<ServiceCommand<*>>) {
+    val modificationStampTracker = project.service<DICatModificationStampTracker>()
     val fsCommands = mutableListOf<FSServiceCommand>()
     val processFilesCommands = mutableListOf<ProcessFilesServiceCommand>()
 
@@ -32,14 +35,14 @@ class DICatCommandExecutorService(
       }
     }
 
-    LOGGER.info("FS Timestamps: ${fsCommands.map { (it.payload as? FileSystemCommandPayload.Add)?.modificationStamp }}")
-
     val fsServiceCommand = buildBatchFSCommand(fsCommands)
 
     if (fsServiceCommand.payload.commands.isNotEmpty())
       executeCommand(fsServiceCommand)
 
-    val processFilesCommand = ServiceCommand.ProcessFiles()
+    val processFilesCommand = ServiceCommand.ProcessFiles(ProcessFilesCommandPayload(
+      projectModificationStamp = modificationStampTracker.get()
+    ))
 
     executeCommand(processFilesCommand)
   }

@@ -17,8 +17,6 @@ class DICatStatsRepository : Disposable {
 
   @Synchronized
   fun updateData(data: ProcessFilesResponse) {
-    LOGGER.info("Updating data, modificationStamps: ${data.modificationStamps}")
-
     allSynchronized(currentData, nextFutures) {
       currentData = data
       nextFutures.forEach {

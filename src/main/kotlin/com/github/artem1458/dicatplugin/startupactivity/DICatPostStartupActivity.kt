@@ -25,7 +25,6 @@ class DICatPostStartupActivity : StartupActivity.Background {
             FileSystemCommandPayload.Add(
               path = FileUtils.getFilePath(psiFile),
               content = FileUtils.getFileContent(psiFile),
-              modificationStamp = FileUtils.getModificationStamp(psiFile),
             )
           )
         }

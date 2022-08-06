@@ -42,29 +42,23 @@ class DICatBulkVirtualFileListener(
       }
     }
 
+    project.service<DICatModificationStampTracker>().inc()
     commandExecutorService.add(fsCommandPayloads.map { ServiceCommand.FS(it) })
   }
 
   private fun onFileUpdate(payloads: MutableList<FileSystemCommandPayload>, event: VFileEvent) {
     val file = event.file ?: return
-    val modificationStampTracker = project.service<DICatModificationStampTracker>()
 
     if (isUnderProjectDir(file.path))
-      modificationStampTracker.inc(file)
-
       payloads.add(
         FileSystemCommandPayload.Add(
           path = FileUtils.getFilePath(file),
           content = FileUtils.getFileContent(file),
-          modificationStamp = FileUtils.getModificationStamp(file, project)
         )
       )
   }
 
   private fun onFileDelete(payloads: MutableList<FileSystemCommandPayload>, event: VFileDeleteEvent) {
-    val modificationStampTracker = project.service<DICatModificationStampTracker>()
-
-    modificationStampTracker.clear(event.file)
     payloads.add(FileSystemCommandPayload.Delete(path = FileUtils.getFilePath(event.file)))
   }
 
@@ -72,36 +66,29 @@ class DICatBulkVirtualFileListener(
     payloads: MutableList<FileSystemCommandPayload>,
     event: VFileMoveEvent
   ) {
-    val modificationStampTracker = project.service<DICatModificationStampTracker>()
     val isOldUnderProjectDir = isUnderProjectDir(event.oldPath)
     val isNewUnderProjectDir = isUnderProjectDir(event.newPath)
 
     when {
       isOldUnderProjectDir && isNewUnderProjectDir -> {
-        modificationStampTracker.clear(event.oldPath)
-        modificationStampTracker.inc(event.newPath)
         payloads.add(
           FileSystemCommandPayload.Move(
             oldPath = event.oldPath,
             newPath = event.newPath,
             content = FileUtils.getFileContent(event.file),
-            modificationStamp = FileUtils.getModificationStamp(event.file, project)
           )
         )
       }
 
       isOldUnderProjectDir -> {
-        modificationStampTracker.clear(event.file)
         payloads.add(FileSystemCommandPayload.Delete(event.oldPath))
       }
 
       isNewUnderProjectDir -> {
-        modificationStampTracker.inc(event.newPath)
         payloads.add(
           FileSystemCommandPayload.Add(
             path = event.newPath,
             content = FileUtils.getFileContent(event.file),
-            modificationStamp = FileUtils.getModificationStamp(event.file, project)
           )
         )
       }

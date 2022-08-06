@@ -1,5 +1,6 @@
 package com.github.artem1458.dicatplugin.linemarker
 
+import com.github.artem1458.dicatplugin.DICatModificationStampTracker
 import com.github.artem1458.dicatplugin.DICatStatsRepository
 import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
@@ -20,13 +21,14 @@ class DICatLineMarkerProvider : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
+    val modificationStampTracker = element.project.service<DICatModificationStampTracker>()
     if (!element.isValid || element !is LeafPsiElement) return
     val processFilesResponse = element.project.service<DICatStatsRepository>().getCurrentSync() ?: return
 
-    val modificationStamp = FileUtils.getModificationStamp(element.containingFile.originalFile)
+    val projectModificationStamp = modificationStampTracker.get()
     val filePath = FileUtils.getFilePath(element.containingFile.originalFile)
 
-    if (processFilesResponse.modificationStamps[filePath] != modificationStamp) return
+    if (processFilesResponse.projectModificationStamp != projectModificationStamp) return
 
     val beanDeclarations = mutableListOf<BeanDeclarationLinkStatistics>()
 

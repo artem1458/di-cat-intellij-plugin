@@ -2,6 +2,7 @@ package com.github.artem1458.dicatplugin.models
 
 import com.github.artem1458.dicatplugin.models.fs.BatchFileSystemCommandPayload
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
+import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesCommandPayload
 import com.github.artem1458.dicatplugin.taskqueue.ITaskExecutorQueue
 import org.jetbrains.annotations.ApiStatus.Internal
 
@@ -21,9 +22,9 @@ data class ServiceCommand<Payload>(
       payload = payload
     )
 
-    fun ProcessFiles(): ProcessFilesServiceCommand = ServiceCommand(
+    fun ProcessFiles(payload: ProcessFilesCommandPayload): ProcessFilesServiceCommand = ServiceCommand(
       type = CommandType.PROCESS_FILES,
-      payload = Unit
+      payload = payload
     )
   }
 
@@ -35,5 +36,5 @@ data class ServiceCommand<Payload>(
 
 typealias FSServiceCommand = ServiceCommand<FileSystemCommandPayload>
 typealias BatchFSServiceCommand = ServiceCommand<BatchFileSystemCommandPayload>
-typealias ProcessFilesServiceCommand = ServiceCommand<Unit>
+typealias ProcessFilesServiceCommand = ServiceCommand<ProcessFilesCommandPayload>
 

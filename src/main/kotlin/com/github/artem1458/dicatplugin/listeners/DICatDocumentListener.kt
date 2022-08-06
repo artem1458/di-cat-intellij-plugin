@@ -39,18 +39,17 @@ class DICatDocumentListener(
       val commandExecutorService = project.service<DICatCommandExecutorService>()
       val modificationStampTracker = project.service<DICatModificationStampTracker>()
 
-      modificationStampTracker.inc(document)
-
       val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return
 
       val command = ServiceCommand.FS(
         payload = FileSystemCommandPayload.Add(
           path = FileUtils.getFilePath(psiFile),
+          //The text is lagging behind editing, if you take document.text sometimes it's adding dummy identifier IntelliJIdeaRulezzz
           content = psiFile.originalFile.text,
-          modificationStamp = FileUtils.getModificationStamp(psiFile),
         )
       )
 
+      modificationStampTracker.inc()
       commandExecutorService.add(command)
     }
   }
