@@ -71,23 +71,24 @@ class DICatLinkLineMarkerProvider(
     linkType: LinkStatistics.LinkType,
     gotoList: List<MyGotoRelatedItem>
   ): RelatedItemLineMarkerInfo<*> {
-    val title = if (gotoList.size > 1)
+    val hoveringTitle = if (gotoList.size > 1)
       DICatBundle.message("lineMarkerLinkType_${linkType.name}_plural")
     else
       DICatBundle.message("lineMarkerLinkType_${linkType.name}")
+    val popupTitle = DICatBundle.message("lineMarkerLinkType_${linkType.name}")
 
     return RelatedItemLineMarkerInfo(
       element,
       element.textRange,
       TypeScriptFileType.INSTANCE.icon!!,
-      { title },
+      { hoveringTitle },
       { mouseEvent, _ ->
         if (gotoList.size == 1)
           gotoList.first().navigate()
         else {
           JBPopupFactory.getInstance().createListPopup(
             MyListPopupStep(
-              title,
+              popupTitle,
               gotoList
             )
           )

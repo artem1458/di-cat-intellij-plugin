@@ -34,26 +34,46 @@ class DICatProcessListener(
 
   override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
     if (ProcessOutputType.isStdout(outputType)) {
-      val text = event.text.trim()
+      handleResponse(event.text)
+    }
+  }
 
-      try {
-        val response = objectMapper.fromJson(text, ServiceResponse::class.java)
+  @Volatile
+  private var responseBuffer: String = ""
 
-        if (response.type == ServiceResponse.ResponseType.INIT) {
-          initialized.set(true)
+  private fun handleResponse(text: String) {
 
-          return
+    val fullOutput = synchronized(responseBuffer) {
+      if (text.endsWith('\n')) {
+        return@synchronized (responseBuffer + text).also {
+          responseBuffer = ""
         }
+      } else {
+        responseBuffer += text
 
-        responseFuture?.let{
-          synchronized(it) {it.complete(response)}
-        }
-      } catch (err: Throwable) {
-        LOGGER.error(err)
-        //TODO
-        responseFuture?.let{
-          synchronized(it) {it.complete(ServiceResponse(ServiceResponse.ResponseType.ERROR, null))}
-        }
+        return@synchronized null
+      }
+    }
+
+    fullOutput ?: return
+
+    try {
+      val response = objectMapper.fromJson(fullOutput, ServiceResponse::class.java)
+
+      if (response.type == ServiceResponse.ResponseType.INIT) {
+        initialized.set(true)
+
+        return
+      }
+
+      responseFuture?.let{
+        synchronized(it) {it.complete(response)}
+      }
+    } catch (err: Throwable) {
+      LOGGER.error(err)
+      //TODO
+      responseFuture?.let{
+        synchronized(it) {it.complete(ServiceResponse(ServiceResponse.ResponseType.ERROR, null))}
       }
     }
   }

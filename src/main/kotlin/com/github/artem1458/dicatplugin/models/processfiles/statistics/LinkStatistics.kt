@@ -15,6 +15,7 @@ data class LinkStatistics(
   )
 
   enum class LinkType {
+    BEAN_USAGE_DECLARATION,
     QUALIFIED_BEAN_DECLARATION,
     BEAN_DECLARATION,
   }
