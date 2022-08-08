@@ -1,11 +1,11 @@
 package com.github.artem1458.dicatplugin.linemarker
 
 import com.github.artem1458.dicatplugin.DICatModificationStampTracker
-import com.github.artem1458.dicatplugin.DICatStatsRepository
+import com.github.artem1458.dicatplugin.DICatResponseHolder
 import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.models.processfiles.statistics.BaseStatistics
-import com.github.artem1458.dicatplugin.models.processfiles.statistics.BeanDeclarationLinkStatistics
+import com.github.artem1458.dicatplugin.models.processfiles.statistics.LinkStatistics
 import com.google.gson.Gson
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
@@ -23,49 +23,46 @@ class DICatLineMarkerProvider : RelatedItemLineMarkerProvider() {
   ) {
     val modificationStampTracker = element.project.service<DICatModificationStampTracker>()
     if (!element.isValid || element !is LeafPsiElement) return
-    val processFilesResponse = element.project.service<DICatStatsRepository>().getCurrentSync() ?: return
+    val processFilesResponse = element.project.service<DICatResponseHolder>().getCurrentSync() ?: return
 
     val projectModificationStamp = modificationStampTracker.get()
     val filePath = FileUtils.getFilePath(element.containingFile.originalFile)
 
     if (processFilesResponse.projectModificationStamp != projectModificationStamp) return
 
-    val beanDeclarations = mutableListOf<BeanDeclarationLinkStatistics>()
+    val linkStatistics = mutableListOf<LinkStatistics>()
 
     fillStats(
       stats = processFilesResponse,
       filePath = filePath,
-      beanDeclarations = beanDeclarations
+      linkStatistics = linkStatistics
     )
 
-    val beanDeclarationLineMarker = element.project.service<DICatBeanDeclarationLineMarkerProvider>()
+    val linkLineMarkerProvider = element.project.service<DICatLinkLineMarkerProvider>()
 
-    beanDeclarationLineMarker.handle(element, result, beanDeclarations)
+    linkLineMarkerProvider.handle(element, result, linkStatistics)
   }
 
   private fun fillStats(
     stats: ProcessFilesResponse,
     filePath: String,
-    beanDeclarations: MutableList<BeanDeclarationLinkStatistics>,
+    linkStatistics: MutableList<LinkStatistics>,
   ) {
     stats.statistics.forEach { baseStatistics ->
       when (baseStatistics.type) {
-        BaseStatistics.StatisticsType.BEAN_DEPENDENCIES -> {}
-
-        BaseStatistics.StatisticsType.BEAN_DECLARATION_LINK ->
-          handleBeanDeclarationLink(filePath, baseStatistics.payload, beanDeclarations)
+        BaseStatistics.StatisticsType.LINK ->
+          handleLink(filePath, baseStatistics.payload, linkStatistics)
       }
     }
   }
 
-  private fun handleBeanDeclarationLink(
+  private fun handleLink(
     filePath: String,
     payload: String,
-    beanDeclarations: MutableList<BeanDeclarationLinkStatistics>
+    linkStatistics: MutableList<LinkStatistics>
   ) {
-    objectMapper.fromJson(payload, BeanDeclarationLinkStatistics::class.java).run {
-      if (linkPosition.path == filePath)
-        beanDeclarations.add(this)
+    objectMapper.fromJson(payload, LinkStatistics::class.java).run {
+      if (fromPosition.path == filePath) linkStatistics.add(this)
     }
   }
 }

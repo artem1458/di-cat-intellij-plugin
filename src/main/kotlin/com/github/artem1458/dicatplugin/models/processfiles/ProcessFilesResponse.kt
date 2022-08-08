@@ -5,21 +5,20 @@ import com.github.artem1458.dicatplugin.models.processfiles.statistics.BaseStati
 data class ProcessFilesResponse(
   val compilationMessages: List<CompilationMessage>,
   val projectModificationStamp: Long,
-  val statistics: List<BaseStatistics>
+  val statistics: List<BaseStatistics>,
+  val affectedFiles: Set<String>
 ) {
 
   companion object {
     val EMPTY = ProcessFilesResponse(
       compilationMessages = emptyList(),
       statistics = emptyList(),
-      projectModificationStamp = 0
+      projectModificationStamp = 0,
+      affectedFiles = emptySet()
     )
   }
 
   fun isEmpty(): Boolean = this === EMPTY
-
-  fun hasSomethingByPath(path: String): Boolean =
-    compilationMessages.any { it.filePath == path }
 
   data class CompilationMessage(
     val details: String?,

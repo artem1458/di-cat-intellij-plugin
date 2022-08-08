@@ -1,23 +1,19 @@
 package com.github.artem1458.dicatplugin.services
 
+import com.github.artem1458.dicatplugin.DICatDaemonCodeAnalyzerRestarter
 import com.github.artem1458.dicatplugin.DICatModificationStampTracker
-import com.github.artem1458.dicatplugin.DICatStatsRepository
-import com.github.artem1458.dicatplugin.FileUtils
+import com.github.artem1458.dicatplugin.DICatResponseHolder
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesCommandPayload
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
 import com.google.gson.Gson
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiManager
 
 class DICatService(
   private val project: Project
@@ -65,12 +61,13 @@ class DICatService(
 
     when (response.type) {
       ServiceResponse.ResponseType.PROCESS_FILES -> {
-        val repository = project.service<DICatStatsRepository>()
+        val repository = project.service<DICatResponseHolder>()
 
         val processFilesResponse = objectMapper.fromJson(response.payload, ProcessFilesResponse::class.java)
 
         repository.updateData(processFilesResponse)
-        restartDaemonCodeAnalyzer(processFilesResponse)
+
+        DICatDaemonCodeAnalyzerRestarter.restart(project)
       }
 
       ServiceResponse.ResponseType.ERROR -> {
@@ -80,30 +77,6 @@ class DICatService(
       ServiceResponse.ResponseType.FS -> {}
       ServiceResponse.ResponseType.INIT -> {}
       ServiceResponse.ResponseType.EXIT -> {}
-    }
-  }
-
-  private fun restartDaemonCodeAnalyzer(processFilesResponse: ProcessFilesResponse) {
-    LOGGER.info("Scheduling restart of daemonCodeAnalyzer")
-
-    ApplicationManager.getApplication().invokeLater {
-      val psiManager = PsiManager.getInstance(project)
-      val daemonCodeAnalyzer = DaemonCodeAnalyzer.getInstance(project)
-
-      FileEditorManager.getInstance(project).allEditors.forEach { editor ->
-        val file = editor.file
-          ?: return@forEach Unit.also { LOGGER.info("VFile from editor not found, skipping restart of daemonCodeAnalyzer") }
-
-        val psiFile = psiManager.findFile(file)
-          ?: return@forEach Unit.also { LOGGER.info("PsiFile for editor not found, skipping restart of daemonCodeAnalyzer") }
-
-        if (!FileUtils.isValidFile(psiFile))
-          return@forEach Unit.also { LOGGER.info("Skipping restart of daemonCodeAnalyzer, file not valid: ${file.path}") }
-
-        LOGGER.info("Restarting daemonCodeAnalyzer for file: ${file.path}")
-
-        daemonCodeAnalyzer.restart(psiFile)
-      }
     }
   }
 

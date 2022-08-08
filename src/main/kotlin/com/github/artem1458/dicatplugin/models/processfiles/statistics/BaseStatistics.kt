@@ -6,7 +6,6 @@ data class BaseStatistics(
 ) {
 
   enum class StatisticsType {
-    BEAN_DEPENDENCIES,
-    BEAN_DECLARATION_LINK,
+    LINK,
   }
 }

@@ -8,7 +8,6 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import java.util.concurrent.CancellationException
 import java.util.concurrent.Future
@@ -33,9 +32,9 @@ class DICatExternalAnnotator :
     LOGGER.info("doAnnotate(): Starting annotation process")
     collectedInfo ?: return null
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.service<DICatStatsRepository>()
+    val responseHolder = project.service<DICatResponseHolder>()
 
-    return myAnnotate(collectedInfo, statsRepository.getCurrent())
+    return myAnnotate(collectedInfo, responseHolder.getCurrent())
   }
 
   private fun myAnnotate(
@@ -76,9 +75,9 @@ class DICatExternalAnnotator :
 
     LOGGER.info("annotate(): waiting more new timestamp. file: ${collectedInfo.filePath}")
     val project = collectedInfo.psiFile.project
-    val statsRepository = project.service<DICatStatsRepository>()
+    val responseHolder = project.service<DICatResponseHolder>()
 
-    return myAnnotate(collectedInfo, statsRepository.getNext())
+    return myAnnotate(collectedInfo, responseHolder.getNext())
   }
 
   override fun apply(psiFile: PsiFile, annotationResult: DICatAnnotationResultType?, holder: AnnotationHolder) {

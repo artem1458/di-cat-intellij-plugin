@@ -19,8 +19,8 @@
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatDocumentListener"/>
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.listeners.DICatPsiTreeChangeListener"/>
         <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatModificationStampTracker"/>
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatStatsRepository"/>
-        <projectService serviceImplementation="com.github.artem1458.dicatplugin.linemarker.DICatBeanDeclarationLineMarkerProvider"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.DICatResponseHolder"/>
+        <projectService serviceImplementation="com.github.artem1458.dicatplugin.linemarker.DICatLinkLineMarkerProvider"/>
         <externalAnnotator language="JavaScript"
                            implementationClass="com.github.artem1458.dicatplugin.DICatExternalAnnotator"/>
         <codeInsight.lineMarkerProvider language="JavaScript"
