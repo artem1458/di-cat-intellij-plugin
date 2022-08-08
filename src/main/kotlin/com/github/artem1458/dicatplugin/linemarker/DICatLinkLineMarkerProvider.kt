@@ -47,7 +47,9 @@ class DICatLinkLineMarkerProvider(
     if (gotoList.isEmpty()) return
 
     gotoList.groupBy({ it.first.linkType }, { it.second }).forEach { (linkType, gotoItems) ->
-      result.add(buildRelatedItemLineMarkerInfo(element, linkType, gotoItems))
+      val sortedGotoItems = gotoItems.sortedBy { it.presentableName }
+
+      result.add(buildRelatedItemLineMarkerInfo(element, linkType, sortedGotoItems))
     }
   }
 

@@ -12,7 +12,7 @@ object DICatBundle : DynamicBundle(BUNDLE) {
   @Suppress("SpreadOperator")
   @JvmStatic
   fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
-    getMessage(key, *params)
+    messageOrNull(key, *params) ?: "DI_CAT_NO_CONTENT"
 
   @Suppress("SpreadOperator", "unused")
   @JvmStatic
