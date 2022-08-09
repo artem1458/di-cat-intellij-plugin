@@ -42,7 +42,6 @@ class DICatProcessListener(
   private var responseBuffer: String = ""
 
   private fun handleResponse(text: String) {
-
     val fullOutput = synchronized(responseBuffer) {
       if (text.endsWith('\n')) {
         return@synchronized (responseBuffer + text).also {

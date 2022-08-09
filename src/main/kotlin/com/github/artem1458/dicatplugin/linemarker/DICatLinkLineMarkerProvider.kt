@@ -75,7 +75,7 @@ class DICatLinkLineMarkerProvider(
       DICatBundle.message("lineMarkerLinkType_${linkType.name}_plural")
     else
       DICatBundle.message("lineMarkerLinkType_${linkType.name}")
-    val popupTitle = DICatBundle.message("lineMarkerLinkType_${linkType.name}")
+    val popupTitle = DICatBundle.message("lineMarkerLinkType_${linkType.name}_popupTitle")
 
     return RelatedItemLineMarkerInfo(
       element,
