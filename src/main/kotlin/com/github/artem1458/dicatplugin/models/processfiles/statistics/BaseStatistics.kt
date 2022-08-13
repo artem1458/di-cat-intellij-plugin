@@ -7,5 +7,6 @@ data class BaseStatistics(
 
   enum class StatisticsType {
     LINK,
+    CONTEXT_DETAILS,
   }
 }

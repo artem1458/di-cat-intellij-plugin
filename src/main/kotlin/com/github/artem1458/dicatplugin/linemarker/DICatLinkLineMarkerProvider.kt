@@ -4,7 +4,6 @@ import com.github.artem1458.dicatplugin.DICatBundle
 import com.github.artem1458.dicatplugin.DICatPsiUtils
 import com.github.artem1458.dicatplugin.models.processfiles.statistics.LinkStatistics
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
-import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.lang.javascript.TypeScriptFileType
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.application.ReadAction
@@ -16,13 +15,11 @@ import com.intellij.openapi.ui.popup.ListSeparator
 import com.intellij.openapi.ui.popup.MnemonicNavigationFilter
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.SpeedSearchFilter
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.ui.popup.util.BaseStep
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.ui.awt.RelativePoint
-import com.intellij.ui.popup.list.ListPopupImpl
 import java.nio.file.Path
 import javax.swing.Icon
 

@@ -2,14 +2,14 @@ package com.github.artem1458.dicatplugin
 
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.utils.allSynchronized
+import com.github.artem1458.dicatplugin.utils.logger
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 class DICatResponseHolder : Disposable {
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
 
   @Volatile
   private var currentData: ProcessFilesResponse = ProcessFilesResponse.EMPTY

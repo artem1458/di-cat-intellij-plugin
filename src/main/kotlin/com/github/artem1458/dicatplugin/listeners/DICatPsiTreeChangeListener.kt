@@ -5,9 +5,9 @@ import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
+import com.github.artem1458.dicatplugin.utils.logger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
@@ -29,7 +29,7 @@ class DICatPsiTreeChangeListener(
     private val project: Project
   ) : PsiTreeChangeListener {
 
-    private val LOGGER = Logger.getInstance(DICatPsiTreeChangeListener::class.java)
+    private val LOGGER = logger()
 
     private fun onEvent(event: PsiTreeChangeEvent) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()

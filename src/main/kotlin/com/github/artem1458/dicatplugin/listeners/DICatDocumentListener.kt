@@ -5,9 +5,9 @@ import com.github.artem1458.dicatplugin.FileUtils
 import com.github.artem1458.dicatplugin.models.ServiceCommand
 import com.github.artem1458.dicatplugin.models.fs.FileSystemCommandPayload
 import com.github.artem1458.dicatplugin.services.DICatCommandExecutorService
+import com.github.artem1458.dicatplugin.utils.logger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
@@ -33,7 +33,7 @@ class DICatDocumentListener(
     private val project: Project
   ) : BulkAwareDocumentListener.Simple {
 
-    private val LOGGER = Logger.getInstance(DICatDocumentListener::class.java)
+    private val LOGGER = logger()
 
     override fun afterDocumentChange(document: Document) {
       val commandExecutorService = project.service<DICatCommandExecutorService>()

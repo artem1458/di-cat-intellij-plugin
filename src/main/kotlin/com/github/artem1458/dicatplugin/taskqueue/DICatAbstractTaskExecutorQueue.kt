@@ -1,6 +1,6 @@
 package com.github.artem1458.dicatplugin.taskqueue
 
-import com.intellij.openapi.diagnostic.Logger
+import com.github.artem1458.dicatplugin.utils.logger
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicBoolean
@@ -11,7 +11,7 @@ abstract class DICatAbstractTaskExecutorQueue<T>(
 
   abstract fun executeAll(tasks: Iterable<T>)
 
-  protected val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
 
   private val queue = mutableListOf<T>()
 

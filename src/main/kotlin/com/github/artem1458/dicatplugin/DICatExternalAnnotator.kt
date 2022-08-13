@@ -1,12 +1,12 @@
 package com.github.artem1458.dicatplugin
 
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
+import com.github.artem1458.dicatplugin.utils.logger
 import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
 import java.util.concurrent.CancellationException
@@ -16,7 +16,7 @@ class DICatExternalAnnotator :
   ExternalAnnotator<DICatExternalAnnotator.DICatCollectedInfo, DICatExternalAnnotator.DICatAnnotationResultType>(),
   ExternalAnnotatorBatchInspection {
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
 
   override fun getShortName(): String = "DI Cat"
 

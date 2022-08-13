@@ -1,14 +1,14 @@
 package com.github.artem1458.dicatplugin.process
 
-import com.github.artem1458.dicatplugin.exceptions.DICatServiceNotFoundException
 import com.github.artem1458.dicatplugin.exceptions.DICatNodeJSNotFoundException
 import com.github.artem1458.dicatplugin.exceptions.DICatNotFoundException
+import com.github.artem1458.dicatplugin.exceptions.DICatServiceNotFoundException
+import com.github.artem1458.dicatplugin.utils.PathUtils
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.BaseOutputReader
-import com.github.artem1458.dicatplugin.utils.PathUtils
 
 object DICatProcessBuilder {
 

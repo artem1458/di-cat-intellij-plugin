@@ -1,16 +1,16 @@
 package com.github.artem1458.dicatplugin
 
+import com.github.artem1458.dicatplugin.utils.logger
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 
 object DICatDaemonCodeAnalyzerRestarter {
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
 
   fun restart(project: Project) {
     LOGGER.info("Scheduling restart of daemonCodeAnalyzer")

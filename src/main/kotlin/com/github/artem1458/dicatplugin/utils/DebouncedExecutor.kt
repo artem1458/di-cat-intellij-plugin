@@ -1,6 +1,5 @@
 package com.github.artem1458.dicatplugin.utils
 
-import com.intellij.openapi.diagnostic.Logger
 import java.time.Duration
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -12,7 +11,7 @@ class DebouncedExecutor(
   private val task: Runnable,
 ) {
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
 
   private val executor = Executors.newSingleThreadScheduledExecutor {
     Thread(it, javaClass.name).apply { isDaemon = true }

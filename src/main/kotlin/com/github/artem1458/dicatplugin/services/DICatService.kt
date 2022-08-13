@@ -8,18 +8,18 @@ import com.github.artem1458.dicatplugin.models.ServiceResponse
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesCommandPayload
 import com.github.artem1458.dicatplugin.models.processfiles.ProcessFilesResponse
 import com.github.artem1458.dicatplugin.process.DICatProcessBuilder
+import com.github.artem1458.dicatplugin.utils.logger
 import com.google.gson.Gson
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
 class DICatService(
   private val project: Project
 ) : Disposable {
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
   private val objectMapper = Gson()
   private var processHandler: OSProcessHandler? = null
   private var processListener: DICatProcessListener? = null

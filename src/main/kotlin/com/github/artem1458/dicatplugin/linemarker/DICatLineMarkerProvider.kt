@@ -52,6 +52,8 @@ class DICatLineMarkerProvider : RelatedItemLineMarkerProvider() {
       when (baseStatistics.type) {
         BaseStatistics.StatisticsType.LINK ->
           handleLink(filePath, baseStatistics.payload, linkStatistics)
+
+        else -> {}
       }
     }
   }

@@ -1,12 +1,12 @@
 package com.github.artem1458.dicatplugin.services
 
 import com.github.artem1458.dicatplugin.models.ServiceResponse
+import com.github.artem1458.dicatplugin.utils.logger
 import com.google.gson.Gson
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputType
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import java.io.BufferedWriter
 import java.util.concurrent.CompletableFuture
@@ -18,7 +18,7 @@ class DICatProcessListener(
 
   private val objectMapper = Gson()
 
-  private val LOGGER = Logger.getInstance(javaClass)
+  private val LOGGER = logger()
   private val bufferedWriter: BufferedWriter = processHandler.processInput.bufferedWriter()
   private val initialized = AtomicBoolean(false)
 
