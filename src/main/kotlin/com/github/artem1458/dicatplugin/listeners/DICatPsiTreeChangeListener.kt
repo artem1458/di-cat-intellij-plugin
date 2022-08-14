@@ -46,7 +46,6 @@ class DICatPsiTreeChangeListener(
         )
       )
 
-      modificationStampTracker.inc()
       commandExecutorService.add(command)
     }
 

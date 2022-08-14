@@ -9,7 +9,7 @@ abstract class DICatAbstractTaskExecutorQueue<T>(
   private val executionInterval: Duration
 ) : ITaskExecutorQueue<T> {
 
-  abstract fun executeAll(tasks: Iterable<T>)
+  abstract fun executeAll(tasks: List<T>)
 
   private val LOGGER = logger()
 

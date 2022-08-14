@@ -22,8 +22,12 @@ class DICatCommandExecutorService(
     stop()
   }
 
-  override fun executeAll(tasks: Iterable<ServiceCommand<*>>) {
+  override fun executeAll(tasks: List<ServiceCommand<*>>) {
+    if (tasks.isEmpty())
+      return
+
     val modificationStampTracker = project.service<DICatModificationStampTracker>()
+    modificationStampTracker.inc()
     val fsCommands = mutableListOf<FSServiceCommand>()
     val processFilesCommands = mutableListOf<ProcessFilesServiceCommand>()
 

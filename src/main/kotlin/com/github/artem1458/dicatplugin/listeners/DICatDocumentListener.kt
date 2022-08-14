@@ -49,7 +49,6 @@ class DICatDocumentListener(
         )
       )
 
-      modificationStampTracker.inc()
       commandExecutorService.add(command)
     }
   }

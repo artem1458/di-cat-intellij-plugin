@@ -42,7 +42,6 @@ class DICatBulkVirtualFileListener(
       }
     }
 
-    project.service<DICatModificationStampTracker>().inc()
     commandExecutorService.add(fsCommandPayloads.map { ServiceCommand.FS(it) })
   }
 
