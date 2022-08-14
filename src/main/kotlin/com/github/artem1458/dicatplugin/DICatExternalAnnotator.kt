@@ -102,11 +102,6 @@ class DICatExternalAnnotator :
             ?: """${compilationMessage.code}: ${compilationMessage.description}"""
 
           LOGGER.info("apply(): Adding new annotation with message: $message, file: ${FileUtils.getFilePath(psiFile)}")
-          runCatching {
-            LOGGER.info("""apply(): responseNodeText: ${compilationMessage.nodeText}, fileNodeText: ${psiFile.text.substring(compilationMessage.position.startOffset, compilationMessage.position.endOffset)}""")
-          }.onFailure {
-            LOGGER.warn(it)
-          }
 
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(compilationMessage.position.asTextRange())

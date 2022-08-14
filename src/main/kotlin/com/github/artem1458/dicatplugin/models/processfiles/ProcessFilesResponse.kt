@@ -28,7 +28,6 @@ data class ProcessFilesResponse(
     val position: NodePosition,
     val contextDetails: ContextDetails?,
     val filePath: String,
-    val nodeText: String,
   )
 
   data class ContextDetails(
